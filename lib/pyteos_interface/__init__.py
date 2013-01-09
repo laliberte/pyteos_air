@@ -1,0 +1,1 @@
+from pyteos_interface import attribute_to_function

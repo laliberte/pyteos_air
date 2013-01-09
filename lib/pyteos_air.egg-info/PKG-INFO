@@ -1,0 +1,20 @@
+Metadata-Version: 1.0
+Name: pyteos-air
+Version: 0.2.1
+Summary: This package provides python bindings to the atmospheric component of TEOS-10.
+Home-page: www.teos-10.org
+Author: Frédéric Laliberté
+Author-email: frederic.laliberte@utoronto.ca
+License: BSD
+Description: Test readme
+        
+Keywords: thermodynamics atmosphere climate
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Science/Research
+Classifier: Natural Language :: English
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Fortran
+Classifier: Topic :: Scientific/Engineering :: Atmospheric Science
+Classifier: Topic :: Scientific/Engineering :: Mathematics
