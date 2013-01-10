@@ -84,7 +84,7 @@ packages=[package_name+'.'+name for name in find_packages('lib')]
 packages.append(package_name)
 
 setup(name=package_name,
-    version = "0.3.2",
+    version = "0.3.3",
     packages=packages,
     package_dir = {package_name: 'lib'},
 
@@ -106,7 +106,7 @@ setup(name=package_name,
             "Topic :: Scientific/Engineering :: Atmospheric Science",
             "Topic :: Scientific/Engineering :: Mathematics"
         ],
-        long_description=read('README.md'),
+        long_description=read('README'),
         install_requires = ['numpy>=1.6'],
         zip_safe=False,
         ext_package = 'pyteos_air.teos_air',
