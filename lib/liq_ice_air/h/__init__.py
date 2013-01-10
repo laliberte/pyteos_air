@@ -4,15 +4,6 @@ input_type=__name__.split('.')[-1]
 from ... import pyteos_interface
 import sys, imp
 
-desc={}
-desc['temperature']="absolute temperature (K).\n\n\
-Note that this function is not an exact inverse of :func:`pyteos_air.liq_ice_air.g.entropy`. \
-At the freezing point, this function assumes that a combination of liquid water and ice will \
-combine to make sure that the temperature is constant between the Isentropic Freezing level \
-:func:`pyteos_air.liq_ice_air.il.ifl` and the Isentropic Melting Level :func:`pyteos_air.liq_ice_air.il.iml`"
-
-__all__=desc.keys()
-
 docstring="""
 :param A: dry air massfraction (kg/kg)
 :type A: np.array.
@@ -25,17 +16,16 @@ docstring="""
 This is for wet air with ice and liquid.
 """
 
-#Dynamically create function names!
-function_module = imp.new_module(realm+'_'+input_type)
-function_code="""
-def {0}(A,eta,p):
-    return pyteos_interface.attribute_to_function('{2}','{0}',A,eta,p)
-{0}.__name__='{0}'
-{0}.__doc__=\"\"\"{1}\"\"\"
-"""
-exec 'from pyteos_air import pyteos_interface' in function_module.__dict__
+def attfunc(function_name,desc):
+    func=lambda A,eta,p: pyteos_interface.attribute_to_function(realm+'_'+input_type,function_name,A,eta,p)
+    func.__name__=function_name
+    func.__doc__=docstring.format(desc)
+    return func
 
-for function_name in __all__:
-    local_function_code=function_code.format(function_name,docstring.format(function_name),realm+'_'+input_type)
-    exec local_function_code in function_module.__dict__
-    setattr(sys.modules[__name__], function_name, getattr(function_module,function_name))
+temperature=attfunc("temperature","absolute temperature (K).\n\n\
+Note that this function is not an exact inverse of :func:`pyteos_air.liq_ice_air.g.entropy`. \
+At the freezing point, this function assumes that a combination of liquid water and ice will \
+combine to make sure that the temperature is constant between the Isentropic Freezing level \
+:func:`pyteos_air.liq_ice_air.il.ifl` and the Isentropic Melting Level :func:`pyteos_air.liq_ice_air.il.iml`")
+
+

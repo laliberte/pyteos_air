@@ -12,8 +12,6 @@ desc['cond_entropy']="wet air entropy with all the moisture in condensed phase (
 desc['rh_wmo']="relative humidity using WMO definition"
 desc['temperatureequi']="equivalent temperature (K)"
 
-__all__=desc.keys()
-
 docstring="""
 :param A: dry air massfraction (kg/kg)
 :type A: np.array.
@@ -26,17 +24,15 @@ docstring="""
 This is for wet air with ice and liquid.
 """
 
-#Dynamically create function names!
-function_module = imp.new_module(realm+'_'+input_type)
-function_code="""
-def {0}(A,T,p):
-    return pyteos_interface.attribute_to_function('{2}','{0}',A,T,p)
-{0}.__name__='{0}'
-{0}.__doc__=\"\"\"{1}\"\"\"
-"""
-exec 'from pyteos_air import pyteos_interface' in function_module.__dict__
+def attfunc(function_name,desc):
+    func=lambda A,T,p: pyteos_interface.attribute_to_function(realm+'_'+input_type,function_name,A,T,p)
+    func.__name__=function_name
+    func.__doc__=docstring.format(desc)
+    return func
 
-for function_name in __all__:
-    local_function_code=function_code.format(function_name,docstring.format(function_name),realm+'_'+input_type)
-    exec local_function_code in function_module.__dict__
-    setattr(sys.modules[__name__], function_name, getattr(function_module,function_name))
+entropy=                attfunc("entropy","wet air entropy (J/K).\n\n\
+At the freezing temperature, this function assumes that half of the condensate is in liquid phase and\
+that the other half is in ice phase.")
+cond_entropy=           attfunc("cond_entropy","wet air entropy with all the moisture in condensed phase (J/K)")
+rh_wmo=                 attfunc("rh_wmo","relative humidity using WMO definition")
+temperatureequi=        attfunc("temperatureequi","equivalent temperature (K)")
