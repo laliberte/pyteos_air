@@ -17,17 +17,17 @@ docstring="""
 This is for wet air with ice and liquid.
 """
 
-def attribute_to_function(function_name,desc):
+def attfunc(function_name,desc):
     func=lambda A,T,p,pref: pyteos_interface.attribute_to_function(realm+'_'+input_type,function_name,A,T,p,pref)
     func.__name__=function_name
     func.__doc__=docstring.format(desc)
     return func
 
 #Functions list:
-pottemp=attribute_to_function("pottemp","potential tempeature (K) at **pref**.")
-pottempequisat=attribute_to_function("pottempequisat","saturation equivalent potential temperature (K) at **pref**.")
-pottempequipseudo=attribute_to_function("pottempequipseudo","pseudo equivalent potential temperature (K) at **pref**.\n\n\
+pottemp=                attfunc("pottemp","potential tempeature (K) at **pref**.")
+pottempequisat=         attfunc("pottempequisat","saturation equivalent potential temperature (K) at **pref**.")
+pottempequipseudo=      attfunc("pottempequipseudo","pseudo equivalent potential temperature (K) at **pref**.\n\n\
 Integrates the pseudo adiabat until the temperature falls\
 outside the range of validity of TEOS-10.")
-pottempequi=attribute_to_function("pottempequi","equivalent potential tempeature (K) at **pref**.")
+pottempequi=            attfunc("pottempequi","equivalent potential tempeature (K) at **pref**.")
 
