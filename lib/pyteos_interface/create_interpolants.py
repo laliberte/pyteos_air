@@ -33,6 +33,7 @@ class Interpolated_data:
 
         thermo_data = create_gridded_data(realm,input_type,func,thermo_axes,num_procs)
 
+
         if input_type=='sat':
             docstring+='T: '+str(thermo_axes['T'])+'\n'
             docstring+='p: '+str(thermo_axes['p'])+'\n'
@@ -56,6 +57,7 @@ class Interpolated_data:
             docstring+='T: '+str(thermo_axes['T'])+'\n'
             docstring+='p: '+str(thermo_axes['p'])+'\n'
             docstring+='The interpolation is a spline on constant p and linear along p.'
+
 
             self._interpolants=map(
                             interp_linear,
@@ -131,13 +133,17 @@ def create_gridded_data(realm,input_type,func,thermo_axes,num_procs=1):
 def mp_vec_masked(func,args,pool=None):
     #This function simplifies the use of the multiprocessing toolbox.
     if pool:
+        args=np.broadcast_arrays(*args)
         num_procs=len(pool._pool)
         dims_frac_proc=np.ma.array(np.array(args[0].shape)/num_procs)
         dim_index=np.argmin(np.ma.masked_where(dims_frac_proc<1.0,dims_frac_proc))
+        in_shape=list(args[0].shape)
+        in_shape[dim_index]=1
         iter_list=[[func for x in range(0,args[0].shape[dim_index])]]
         for in_arr in args:
-            iter_list.append([np.ma.filled(in_arr,fill_value) for x in range(0,in_arr.shape[dim_index])])
-        out_var = np.concatenate(pool.map(tuple_function,zip(*iter_list)),axis=dim_index)
+            iter_list.append(np.split(np.ma.filled(in_arr,fill_value),args[0].shape[dim_index],axis=dim_index))
+        out_var = np.concatenate(map(lambda x: np.reshape(x,in_shape),
+                                    pool.map(tuple_function,zip(*iter_list))),axis=dim_index)
     else:
         out_var = func(*args)
     return np.ma.masked_where(abs(out_var)>=fill_value,out_var)
