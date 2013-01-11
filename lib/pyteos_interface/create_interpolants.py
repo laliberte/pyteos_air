@@ -43,7 +43,7 @@ class Interpolated_data:
             num_p=len(self._p)
 
             if 'rh_wmo' in thermo_axes.keys():
-                moisture_var=rh_wmo
+                moisture_var='rh_wmo'
                 docstring=docstring.replace(':param A: dry air massfraction (kg/kg)',
                                             ':param rh_wmo: relative humidity, WMO definition, 0 < rh < 1 for unsaturated air')  
                 docstring=docstring.replace(':type A:',
@@ -80,8 +80,8 @@ class Interpolated_data:
             p_ind_sup=np.minimum(p_ind_sup,len(self._p)-1)
             p_ind_low=np.maximum(p_ind_low,0)
 
-            p_sup=self._pa[p_ind_sup]
-            p_low=self._pa[p_ind_low]
+            p_sup=self._p[p_ind_sup]
+            p_low=self._p[p_ind_low]
             dp=p_sup-p_low
 
             interpolants=np.vectorize(lambda x,y,z: self._interpolants[z](x,y))
