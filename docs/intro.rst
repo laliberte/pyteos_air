@@ -21,5 +21,8 @@ and use any one compiler in the list. For example, if ``g95`` is available compi
 
     python setup.py build --fcompiler=g95
 
+Pickle
+------
+THe functions contained within this package can all be saved using pickle, making the use of the multiprocessing toolbox possible.
 
 Frédéric B. Laliberté, November 20, 2012
