@@ -10,12 +10,13 @@ class Interpolated_data:
         self._realm=realm
         self._input_type=input_type
         self.__name__=getattr(getattr(getattr(realm,input_type),func),'__name__')
-        docstring=getattr(getattr(getattr(realm,input_type),func),'__doc__')
+        params_list=function_parameters(getattr(getattr(realm,input_type),func))
+
+        docstring=self.__name__+'('+','.join(params_list)+')'+getattr(getattr(getattr(realm,input_type),func),'__doc__')
         docstring+='\nSpline interpolation from gridded data with grid:\n'
 
         if input_type not in ['g','g_ref','sat']:
             raise NotImplementedError('Input type '+input_type+'is not implemented.')
-        params_list=function_parameters(getattr(getattr(realm,input_type),func))
 
         #Check that the number of function parameters equals the number of thermo_axes inputs:
         if len(params_list) != len(thermo_axes.keys()):
