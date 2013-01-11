@@ -1,1 +1,1 @@
-from pyteos_interface import attribute_to_function
+from pyteos_interface import attribute_to_function, mp_vec_masked
