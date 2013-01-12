@@ -1,8 +1,10 @@
 import numpy as np
 import scipy.interpolate as interp
 
+from create_gridded_data import create_gridded_data
+
 class Interpolated_data:
-    def __init__(self,realm,input_type,func_name,thermo_data,thermo_axes):
+    def __init__(self,realm,input_type,func_name,thermo_axes,num_procs=1):
         #self._realm=realm
         self._input_type=input_type
         self.__name__=getattr(getattr(getattr(realm,input_type),func_name),'__name__')
@@ -11,6 +13,8 @@ class Interpolated_data:
         docstring=self.__name__+'('+','.join(params_list)+')'+getattr(getattr(getattr(realm,input_type),func_name),'__doc__')
         docstring='('+','.join(params_list)+')'+getattr(getattr(getattr(realm,input_type),func_name),'__doc__')
         docstring+='\nSpline interpolation from gridded data with grid:\n'
+
+        thermo_data=create_gridded_data(realm,input_type,func_name,thermo_axes,num_procs=num_procs)
 
         if input_type=='sat':
             docstring+='T: '+str(thermo_axes['T'])+'\n'
