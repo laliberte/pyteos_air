@@ -84,7 +84,7 @@ packages=[package_name+'.'+name for name in find_packages('lib')]
 packages.append(package_name)
 
 setup(name=package_name,
-    version = "0.4",
+    version = "0.4.1",
     packages=packages,
     package_dir = {package_name: 'lib'},
 
