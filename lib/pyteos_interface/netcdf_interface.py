@@ -87,7 +87,7 @@ def replicate_netcdf_var_diff(output,data,var,var_out):
 	        setattr(output.variables[var_out],att,att_val)
 	return output
 
-if __name__ == "__main__":
+def main():
     import sys
     import argparse 
     import shutil
@@ -127,3 +127,5 @@ if __name__ == "__main__":
 
     compute_g(args)
 
+if __name__ == "__main__":
+    main()
