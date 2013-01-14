@@ -28,7 +28,7 @@ def create_gridded_data(realm,input_type,func,thermo_axes,num_procs=1):
     if input_type in ['g','g_ref']:
         if 'rh_wmo' in thermo_axes.keys():
             rh_wmo = np.reshape(thermo_axes['rh_wmo'],[len(thermo_axes['rh_wmo']),1,1])
-            a_sat=np.reshape(getattr(getattr(realm,'sat'),'massfraction_air')(T,p),(1,len(thermo_axes['T']),len(thermo_axes['p'])))
+            a_sat=np.reshape(mp_vec_masked(getattr(getattr(realm,'sat'),'massfraction_air'),(T,p)),(1,len(thermo_axes['T']),len(thermo_axes['p'])))
             A = 1.0 / (1.0 + rh_wmo * (1.0 / a_sat - 1.0))
             #Fix problems close to saturation:
             A = np.where(rh_wmo>=1.0,A+1e-10,A)

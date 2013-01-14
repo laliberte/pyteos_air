@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.interpolate as interp
+import matplotlib.pyplot as plt
 
 from create_gridded_data import create_gridded_data
 
@@ -53,27 +54,28 @@ class Interpolated_data:
 
     def __call__(self,*args):
         if self._input_type=='sat':
-            T, p = np.atleast_3d(*args)
-            return self._interpolants(T,p)
+            T, p = np.broadcast_arrays(*np.atleast_3d(*args))
+            return np.reshape(self._interpolants.ev(np.ravel(T),np.ravel(p)),T.shape)
         elif self._input_type in ['g','g_ref']:
-            A, T, p =np.atleast_3d(*args)
+            A, T, p =np.broadcast_arrays(*np.atleast_3d(*args))
             #Find the pressure bin:
             p_ind_sup=np.apply_along_axis(np.digitize,0,p,self._p)
             p_ind_low=p_ind_sup-1
             p_ind_sup=np.minimum(p_ind_sup,len(self._p)-1)
             p_ind_low=np.maximum(p_ind_low,0)
         
-            p_sup=self._p[p_ind_sup]
-            p_low=self._p[p_ind_low]
+            pval=np.vectorize(lambda x: self._p[x])
+            p_sup=pval(p_ind_sup)
+            p_low=pval(p_ind_low)
             dp=p_sup-p_low
         
-            interpolants=np.vectorize(lambda x,y,z: self._interpolants[z](x,y))
+            interpolants=np.vectorize(lambda x,y,z: self._interpolants[z].ev(x,y))
             return interpolants(A,T,p_ind_sup)*(p-p_low)/dp + interpolants(A,T,p_ind_low)*(p_sup-p)/dp
         else:
             return
         
 def interp_linear(args):
-    nd_interp=interp.RectBivariateSpline(*args)
+    nd_interp=interp.RectBivariateSpline(*args,kx=1,ky=1)
     return nd_interp
 
 def function_parameters(func):
