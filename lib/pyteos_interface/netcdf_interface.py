@@ -3,6 +3,7 @@ import pyteos_air.liq_ice_air as liq_ice_air
 import numpy as np
 import pickle
 import scipy.interpolate as interp
+import multiprocessing as mp
 
 def compute_g(args):
     #LOAD THE DATA:
@@ -38,6 +39,9 @@ def compute_g(args):
     for var in out_var_list:
         output.createVariable(var,'d',tuple(data.variables['ta'].dimensions))
         output = replicate_netcdf_var_diff(output,data,'ta',var)
+        if args.exact>0:
+            output.createVariable(var+'_exact','d',tuple(data.variables['ta'].dimensions))
+            output = replicate_netcdf_var_diff(output,data,'ta',var+'_exact')
     output.createVariable('rh_wmo','d',tuple(data.variables['ta'].dimensions))
     output = replicate_netcdf_var_diff(output,data,'ta','rh_wmo')
     
@@ -54,6 +58,10 @@ def compute_g(args):
         output.variables['rh_wmo'][t_id,...]=hur
         for var in out_var_list:
             output.variables[var][t_id,...]=thermo[var](hur,T,p)
+            if args.exact>0:
+                pool=mp.Pool(processes=args.exact)
+                output.variables[var+'_exact'][t_id,...]=mp_vec_masked(getattr(getattr(liq_ice_air,thermo[var]._input_type),var),(A,T,p,1e5*np.ones_like(A)),pool=pool)
+                pool.close()
         output.sync()
 
     output.close()
@@ -87,6 +95,28 @@ def replicate_netcdf_var_diff(output,data,var,var_out):
 	        setattr(output.variables[var_out],att,att_val)
 	return output
 
+def mp_vec_masked(func,args,pool=None):
+    fill_value=1e90
+    #This function simplifies the use of the multiprocessing toolbox.
+    if pool:
+        args=np.broadcast_arrays(*args)
+        num_procs=len(pool._pool)
+        dims_frac_proc=np.ma.array(np.array(args[0].shape)/num_procs)
+        dim_index=np.argmin(np.ma.masked_where(dims_frac_proc<1.0,dims_frac_proc))
+        in_shape=list(args[0].shape)
+        in_shape[dim_index]=1
+        iter_list=[[func for x in range(0,args[0].shape[dim_index])]]
+        for in_arr in args:
+            iter_list.append(np.split(np.ma.filled(in_arr,fill_value),args[0].shape[dim_index],axis=dim_index))
+        out_var = np.concatenate(map(lambda x: np.reshape(x,in_shape),
+                                    pool.map(tuple_function,zip(*iter_list))),axis=dim_index)
+    else:
+        out_var = func(*args)
+    return np.ma.masked_where(abs(out_var)>=fill_value,out_var)
+
+def tuple_function(args):
+    return args[0](*args[1:])
+
 def main():
     import sys
     import argparse 
@@ -95,10 +125,8 @@ def main():
 
     #Option parser
     description=textwrap.dedent('''\
-    This script computes:
-    1. Liquid water (Dry) Potential Temperature, output as pottemp
-    2. Equivalent (Moist) Potential Temperature, output as pottempequi
-    3. Relative Humidity using the WMO definition, output as rh_wmo
+    This script computes the pyteos_air functions stored in a pickle file created by
+    create_interpolants.
 
     from the air temperature (a), air pressure (pa), and the Specific 
     Total Water Content (hus) which can be taken equal to the
@@ -122,6 +150,10 @@ def main():
     parser.add_argument('-z','--zlib',
                          default=False, action='store_true',
                          help='Compress the output using compressed netCDF4.')
+
+    parser.add_argument('-e','--exact',type=int,
+                         default=0,
+                         help='If set to a value E larger than 0, computes the exact values using liq_ice_air (can be slow) using E processors.')
     
     args = parser.parse_args()
 
