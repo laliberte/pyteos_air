@@ -153,7 +153,7 @@ def main():
 
     parser.add_argument('-e','--exact',type=int,
                          default=0,
-                         help='If set to a value E larger than 0, computes the exact values using liq_ice_air (can be slow) using E processors.')
+                         help='If set to a value EXACT larger than 0, computes the exact values using liq_ice_air (can be slow) using EAXCT processors.')
     
     args = parser.parse_args()
 
