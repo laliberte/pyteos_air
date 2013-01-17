@@ -4,14 +4,6 @@ input_type=__name__.split('.')[-1]
 from ... import pyteos_interface
 import sys, imp
 
-desc={}
-desc['entropy']="wet air entropy (J/K).\n\n\
-At the freezing temperature, this function assumes that half of the condensate is in liquid phase and\
-that the other half is in ice phase."
-desc['cond_entropy']="wet air entropy with all the moisture in condensed phase (J/K)"
-desc['rh_wmo']="relative humidity using WMO definition"
-desc['temperatureequi']="equivalent temperature (K)"
-
 docstring="""
 :param A: dry air massfraction (kg/kg)
 :type A: np.array.
@@ -30,9 +22,8 @@ def attfunc(function_name,desc):
     func.__doc__=docstring.format(desc)
     return func
 
-entropy=                attfunc("entropy","wet air entropy (J/K).\n\n\
-At the freezing temperature, this function assumes that half of the condensate is in liquid phase and\
-that the other half is in ice phase.")
+entropy=                attfunc("entropy","wet air entropy (J/K).")
 cond_entropy=           attfunc("cond_entropy","wet air entropy with all the moisture in condensed phase (J/K)")
+density=                attfunc("density","wet air density (kg/m3).")
 rh_wmo=                 attfunc("rh_wmo","relative humidity using WMO definition")
 temperatureequi=        attfunc("temperatureequi","equivalent temperature (K)")

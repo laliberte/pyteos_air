@@ -126,6 +126,9 @@ subroutine liq_ice_air_g(in_name,in_q,in_t,in_p, k, l, m, out_val)
                 case( 'entropy' )
                     out_val(idk,idl,idm)=liq_ice_air_g_entropy_si(in_q(idk,idl,idm),&
                     in_t(idk,idl,idm), in_p(idk,idl,idm))
+                case( 'density' )
+                    out_val(idk,idl,idm)=liq_ice_air_g_density_si(in_q(idk,idl,idm),&
+                    in_t(idk,idl,idm), in_p(idk,idl,idm))
                 case( 'cond_entropy' )
                     out_val(idk,idl,idm)=liq_ice_air_g_cond_entropy_si(in_q(idk,idl,idm),&
                     in_t(idk,idl,idm), in_p(idk,idl,idm))

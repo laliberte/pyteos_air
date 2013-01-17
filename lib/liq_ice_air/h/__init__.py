@@ -28,7 +28,7 @@ At the freezing point, this function assumes that a combination of liquid water 
 combine to make sure that the temperature is constant between the Isentropic Freezing level \
 :func:`pyteos_air.liq_ice_air.il.ifl` and the Isentropic Melting Level :func:`pyteos_air.liq_ice_air.il.iml`")
 
-temperature=attfunc("density","density (kg/m3).\n\n\
+density=attfunc("density","density (kg/m3).\n\n\
 At the freezing point, this function assumes that a combination of liquid water and ice will \
 combine to make sure that the temperature is constant between the Isentropic Freezing level \
 :func:`pyteos_air.liq_ice_air.il.ifl` and the Isentropic Melting Level :func:`pyteos_air.liq_ice_air.il.iml`")
