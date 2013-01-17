@@ -5,7 +5,7 @@ import pickle
 import scipy.interpolate as interp
 import multiprocessing as mp
 
-def ccreate_thermo(args):
+def create_thermo(args):
     #LOAD THE DATA:
     thermo = pickle.load(args.in_thermodynamic_file)
     data = Dataset(args.in_netcdf_file)
@@ -40,7 +40,7 @@ def compute_g(args,thermo,data,output):
 
     #Use temperature as a model variable and create the necessary dimensions for ouput:
     for dims in data.variables['ta'].dimensions:
-        if dims not in output.dimension.keys():
+        if dims not in output.dimensions.keys():
             output.createDimension(dims,len(data.dimensions[dims]))
             dim_var = output.createVariable(dims,'d',(dims,))
             dim_var[:] = data.variables[dims][:]
@@ -56,44 +56,72 @@ def compute_g(args,thermo,data,output):
         raise IOError('Variable massfraction_air should be in input thermodynamical file')
 
     #Create the output variables. Do not output the saturation massfraction
+    fill_value=1e20
     out_var_list.remove('massfraction_air')
     for var in out_var_list:
-        output.createVariable(var,'d',tuple(data.variables['ta'].dimensions))
+        output.createVariable(var,'d',tuple(data.variables['ta'].dimensions),fill_value=fill_value)
         output = replicate_netcdf_var_diff(output,data,'ta',var)
         if args.exact>0:
             #If exact was requested (for accuracy testing purposes), create the variables
-            output.createVariable(var+'_exact','d',tuple(data.variables['ta'].dimensions))
+            output.createVariable(var+'_exact','d',tuple(data.variables['ta'].dimensions),fill_value=fill_value)
             output = replicate_netcdf_var_diff(output,data,'ta',var+'_exact')
 
     #Output the relative humidity if hus is in the inpute file:
     if 'hus' in data.variables.keys():
-        output.createVariable('rh_wmo','d',tuple(data.variables['ta'].dimensions))
+        output.createVariable('rh_wmo','d',tuple(data.variables['ta'].dimensions),fill_value=fill_value)
         output = replicate_netcdf_var_diff(output,data,'ta','rh_wmo')
+    elif 'hur' in data.variables.keys():
+        output.createVariable('A','d',tuple(data.variables['ta'].dimensions),fill_value=fill_value)
+        output = replicate_netcdf_var_diff(output,data,'ta','A')
+    else:
+        raise IOError('Input file should contain hus or hur')
     
     time_length=len(data.dimensions['time']) 
     for t_id in range(0,time_length):
         T =data.variables['ta'][t_id,...]
         p =data.variables['pa'][t_id,...]
+        massfraction_air=thermo['massfraction_air'](T,p)
 
         if 'hus' in data.variables.keys():
-            A  =1.0-data.variables['hus'][t_id,...]
-            massfraction_air=thermo['massfraction_air'](T,p)
+            hus=data.variables['hus'][t_id,...]
+            A  =1.0-hus
             hur=(1.0 / A - 1.0) / (1.0 / massfraction_air - 1.0)
+            output.variables['rh_wmo'][t_id,...]=hur
+            output.variables['A'][t_id,...]=A
         elif 'hur' in data.variables.keys():
             hur=data.variables['hur'][t_id,...]
+            A = 1.0 / (1.0 + hur * (1.0 / massfraction_air - 1.0))
+            output.variables['A'][t_id,...]=A
         else:
             raise IOError('Input file should contain hus or hur')
 
         #First find the relative humidity:
-        output.variables['rh_wmo'][t_id,...]=hur
         for var in out_var_list:
-            output.variables[var][t_id,...]=thermo[var](hur,T,p)
+            if find_first_input(thermo[var])=='A':
+                output.variables[var][t_id,...]=np.ma.filled(mp_vec_masked(thermo[var],(A,T,p)),fill_value=fill_value)
+            elif find_first_input(thermo[var])=='rh_wmo':
+                output.variables[var][t_id,...]=np.ma.filled(mp_vec_masked(thermo[var],(hur,T,p)),fill_value=fill_value)
+            else:
+                raise IOError('Unknown interpolation input of variable '+var+': '+find_first_input(thermo[var]))
+
             if args.exact>0:
                 pool=mp.Pool(processes=args.exact)
-                output.variables[var+'_exact'][t_id,...]=mp_vec_masked(getattr(getattr(liq_ice_air,thermo[var]._input_type),var),(A,T,p,1e5*np.ones_like(A)),pool=pool)
+                output.variables[var+'_exact'][t_id,...]=np.ma.filled(
+                                                            mp_vec_masked(getattr(
+                                                                             getattr(
+                                                                                liq_ice_air,thermo[var]._input_type),var
+                                                                                    ),
+                                                                             (A,T,p,1e5*np.ones_like(A)),
+                                                                             pool=pool
+                                                                         ),fill_value=fill_value
+                                                                      )
                 pool.close()
         output.sync()
     return
+
+def find_first_input(interp_func):
+    #Finds the first input:
+    return interp_func.__doc__.splitlines()[0].replace(interp_func.__name__,'').replace('(','').replace(')','').split(',')[0]
 
 def replicate_netcdf_file(output,data):
     for att in data.ncattrs():

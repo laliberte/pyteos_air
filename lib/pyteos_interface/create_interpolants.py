@@ -12,7 +12,6 @@ class Interpolated_data:
 
         params_list=function_parameters(getattr(getattr(realm,input_type),func_name))
         docstring=self.__name__+'('+','.join(params_list)+')'+getattr(getattr(getattr(realm,input_type),func_name),'__doc__')
-        docstring='('+','.join(params_list)+')'+getattr(getattr(getattr(realm,input_type),func_name),'__doc__')
         docstring+='\nSpline interpolation from gridded data with grid:\n'
 
         thermo_data=create_gridded_data(realm,input_type,func_name,thermo_axes,num_procs=num_procs)
