@@ -169,6 +169,9 @@ subroutine liq_ice_air_h(in_name,in_q,in_s,in_p, k, l, m, out_val)
                 case( 'temperature' )
                     out_val(idk,idl,idm)=liq_ice_air_h_temperature_si(in_q(idk,idl,idm),&
                     in_s(idk,idl,idm), in_p(idk,idl,idm))
+                case( 'density' )
+                    out_val(idk,idl,idm)=liq_ice_air_h_density_si(in_q(idk,idl,idm),&
+                    in_s(idk,idl,idm), in_p(idk,idl,idm))
                 case default
                     write(*,*) 'Unknown function'
             end select
