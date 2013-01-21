@@ -11,6 +11,8 @@ class Interpolated_data:
         self.__name__=getattr(getattr(getattr(realm,input_type),func_name),'__name__')
 
         params_list=function_parameters(getattr(getattr(realm,input_type),func_name))
+        if input_type in ['g','g_ref'] and 'rh_wmo' in thermo_axes.keys():
+            params_list[0]='rh_wmo'
         docstring=self.__name__+'('+','.join(params_list)+')'+getattr(getattr(getattr(realm,input_type),func_name),'__doc__')
         docstring+='\nSpline interpolation from gridded data with grid:\n'
 
@@ -21,6 +23,23 @@ class Interpolated_data:
             docstring+='p: '+str(thermo_axes['p'])+'\n'
 
             self._interpolants=interp_linear((thermo_axes['T'],thermo_axes['p'],np.squeeze(thermo_data)))
+        elif input_type in ['h']:
+            self._p = thermo_axes['p']
+            num_p=len(self._p)
+
+            docstring+='A: '+str(thermo_axes['A'])+'\n'
+            docstring+='eta: '+str(thermo_axes['eta'])+'\n'
+            docstring+='p: '+str(thermo_axes['p'])+'\n'
+            docstring+='The interpolation is a spline on constant p and linear along p.'
+
+            self._interpolants=map(
+                            interp_linear,
+                            zip(
+                                [thermo_axes['A'] for x in range(0,num_p)],
+                                [thermo_axes['eta'] for x in range(0,num_p)],
+                                np.dsplit(thermo_data,num_p)
+                            )
+                            )
         elif input_type in ['g','g_ref']:
             self._p = thermo_axes['p']
             num_p=len(self._p)
@@ -55,7 +74,7 @@ class Interpolated_data:
         if self._input_type=='sat':
             T, p = np.broadcast_arrays(*np.atleast_3d(*args))
             return np.reshape(self._interpolants.ev(np.ravel(T),np.ravel(p)),T.shape)
-        elif self._input_type in ['g','g_ref']:
+        elif self._input_type in ['h','g','g_ref']:
             A, T, p =np.broadcast_arrays(*np.atleast_3d(*args))
             #Find the pressure bin:
             p_ind_sup=np.apply_along_axis(np.digitize,0,p,self._p)

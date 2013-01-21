@@ -6,8 +6,8 @@ def function_parameters(func):
 
 def create_gridded_data(realm,input_type,func,thermo_axes,num_procs=1):
     params_list=function_parameters(getattr(getattr(realm,input_type),func))
-    if input_type not in ['g','g_ref','sat']:
-        raise NotImplementedError('Input type '+input_type+'is not implemented.')
+    if input_type not in ['g','g_ref','h','sat']:
+        raise NotImplementedError('Input type '+input_type+' is not implemented.')
 
     #Check that the number of function parameters equals the number of thermo_axes inputs:
     if len(params_list) != len(thermo_axes.keys()):
@@ -22,24 +22,31 @@ def create_gridded_data(realm,input_type,func,thermo_axes,num_procs=1):
     if input_type=='g_ref' and not np.isscalar(thermo_axes['pref']):
         raise IndexError('class Interpolated data: if the function has more than three dimensions pref must be a scalar')
 
-    T =np.reshape(thermo_axes['T'],[1,len(thermo_axes['T']),1])
-    p =np.reshape(thermo_axes['p'],[1,1,len(thermo_axes['p'])])
-
-    if input_type in ['g','g_ref']:
-        if 'rh_wmo' in thermo_axes.keys():
-            rh_wmo = np.reshape(thermo_axes['rh_wmo'],[len(thermo_axes['rh_wmo']),1,1])
-            a_sat=np.reshape(mp_vec_masked(getattr(getattr(realm,'sat'),'massfraction_air'),(T,p)),(1,len(thermo_axes['T']),len(thermo_axes['p'])))
-            A = 1.0 / (1.0 + rh_wmo * (1.0 / a_sat - 1.0))
-            #Fix problems close to saturation:
-            A = np.where(rh_wmo>=1.0,A+1e-10,A)
-        else:
-            A = np.reshape(thermo_axes['A'],[len(thermo_axes['A']),1,1])
-
+    #Start the multiprocessing pool:
     if num_procs>1:
         import multiprocessing as mproc
         pool=mproc.Pool(processes=int(num_procs))
     else:
         pool=None
+
+    if input_type in ['g','g_ref','sat']:
+        T =np.reshape(thermo_axes['T'],[1,len(thermo_axes['T']),1])
+        p =np.reshape(thermo_axes['p'],[1,1,len(thermo_axes['p'])])
+
+        if input_type in ['g','g_ref']:
+            if 'rh_wmo' in thermo_axes.keys():
+                rh_wmo = np.reshape(thermo_axes['rh_wmo'],[len(thermo_axes['rh_wmo']),1,1])
+                a_sat=np.reshape(mp_vec_masked(getattr(getattr(realm,'sat'),'massfraction_air'),(T,p)),(1,len(thermo_axes['T']),len(thermo_axes['p'])))
+                A = 1.0 / (1.0 + rh_wmo * (1.0 / a_sat - 1.0))
+                #Fix problems close to saturation:
+                A = np.where(rh_wmo>=1.0,A+1e-10,A)
+            else:
+                A = np.reshape(thermo_axes['A'],[len(thermo_axes['A']),1,1])
+    elif input_type in ['h']:
+        eta =np.reshape(thermo_axes['eta'],[1,len(thermo_axes['eta']),1])
+        p =np.reshape(thermo_axes['p'],[1,1,len(thermo_axes['p'])])
+        A = np.reshape(thermo_axes['A'],[len(thermo_axes['A']),1,1])
+
 
     if input_type=='g_ref':
         result=mp_vec_masked(getattr(getattr(realm,input_type),func),(A,T,p,thermo_axes['pref']),pool=pool)
@@ -47,6 +54,8 @@ def create_gridded_data(realm,input_type,func,thermo_axes,num_procs=1):
         result=mp_vec_masked(getattr(getattr(realm,input_type),func),(A,T,p),pool=pool)
     elif input_type=='sat':
         result=mp_vec_masked(getattr(getattr(realm,input_type),func),(T,p),pool=pool)
+    elif input_type=='h':
+        result=mp_vec_masked(getattr(getattr(realm,input_type),func),(A,eta,p),pool=pool)
 
     if num_procs>1:
         pool.close()

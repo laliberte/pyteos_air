@@ -5,6 +5,23 @@ import pickle
 import scipy.interpolate as interp
 import multiprocessing as mp
 
+#Define the correspondence between pyteos variable names and CMIP5 naming convention:
+CMIP5_pyteos_equivalence={'A':'hus',
+                          'T':'ta',
+                          'p':'pa',
+                          'rh_wmo':'hur',
+                          'eta':'eta'}
+CMIP5_conversions={'A':lambda x: 1.0-x,
+                   'T':lambda x: x,
+                   'p':lambda x: x,
+                   'rh_wmo':lambda x: x,
+                   'eta':lambda x: x}
+
+valid_params=[ ('T','p'),
+               ('A','T','p'),
+               ('rh_wmo','T','p'),
+               ('A','eta','p')]
+
 def create_thermo(args):
     #LOAD THE DATA:
     thermo = pickle.load(args.in_thermodynamic_file)
@@ -13,115 +30,101 @@ def create_thermo(args):
     #CREATE THE OUTPUT FILE
     output = Dataset(args.out_netcdf_file,'w',format='NETCDF4',zlib=args.zlib)
     output = replicate_netcdf_file(output,data)
-
-    compute_g(args,thermo,data,output)
-    #compute_h(args,thermo,data,output)
-    data.close()
-    output.close()
-
-def compute_g(args,thermo,data,output):
-    #This function computes the functions from interpolated polynomials
-    #for input types g, g_ref and sat
-    #
-    #It is assumed that the input data is using CMIP5 naming convention
-
-    #Pressure and temperature must be in input file:
-    var_list=['ta','pa']
-    if not set(data.variables.keys()).issuperset(var_list):
-        raise IOError('Input file should contain ta and pa')
-
-    #Check that the input coordinates conform:
-    shape_list=[]
-    for var in var_list:
-        shape_list.append(data.variables[var].shape)
-    
-    if len(set(shape_list))>1:
-        raise IOError('Inputs should have the exact same dimensions (this code does not broadcast).')
-
-    #Use temperature as a model variable and create the necessary dimensions for ouput:
-    for dims in data.variables['ta'].dimensions:
-        if dims not in output.dimensions.keys():
-            output.createDimension(dims,len(data.dimensions[dims]))
-            dim_var = output.createVariable(dims,'d',(dims,))
-            dim_var[:] = data.variables[dims][:]
-            output = replicate_netcdf_var(output,data,dims)
+    fill_value=1e20
 
     #Determine the output variables:
     out_var_list=thermo.keys()
-    for var in out_var_list:
-        if not thermo[var]._input_type in ['sat','g','g_ref']:
-            out_var_list.remove(var)
 
-    if not 'massfraction_air' in out_var_list:
-        raise IOError('Variable massfraction_air should be in input thermodynamical file')
+    #FIRST PASS:
+    #Find the available parameters sets:
+    available_params=[params for params in valid_params if params_in_data(data,params)]
+    #Transfer each of the variables in them to the output file:
+    output=transfer_variables(data,output,available_params,fill_value)
+    data.close()
 
-    #Create the output variables. Do not output the saturation massfraction
-    fill_value=1e20
-    out_var_list.remove('massfraction_air')
-    for var in out_var_list:
-        output.createVariable(var,'d',tuple(data.variables['ta'].dimensions),fill_value=fill_value)
-        output = replicate_netcdf_var_diff(output,data,'ta',var)
-        if args.exact>0:
-            #If exact was requested (for accuracy testing purposes), create the variables
-            output.createVariable(var+'_exact','d',tuple(data.variables['ta'].dimensions),fill_value=fill_value)
-            output = replicate_netcdf_var_diff(output,data,'ta',var+'_exact')
+    variable_list=[]
 
-    #Output the relative humidity if hus is in the inpute file:
-    if 'hus' in data.variables.keys():
-        output.createVariable('rh_wmo','d',tuple(data.variables['ta'].dimensions),fill_value=fill_value)
-        output = replicate_netcdf_var_diff(output,data,'ta','rh_wmo')
-    elif 'hur' in data.variables.keys():
-        output.createVariable('A','d',tuple(data.variables['ta'].dimensions),fill_value=fill_value)
-        output = replicate_netcdf_var_diff(output,data,'ta','A')
-    else:
-        raise IOError('Input file should contain hus or hur')
-    
-    time_length=len(data.dimensions['time']) 
-    for t_id in range(0,time_length):
-        T =data.variables['ta'][t_id,...]
-        p =data.variables['pa'][t_id,...]
-        massfraction_air=thermo['massfraction_air'](T,p)
+    while not set(output.variables.keys()).issubset(variable_list):
+        variable_list=output.variables.keys()
+        available_var_list=[ var for var in out_var_list if function_params(thermo[var])[:3] in available_params]
+        for var in available_var_list:
+            output = create_output(args,output,thermo[var],fill_value)
 
-        if 'hus' in data.variables.keys():
-            hus=data.variables['hus'][t_id,...]
-            A  =1.0-hus
-            hur=(1.0 / A - 1.0) / (1.0 / massfraction_air - 1.0)
-            output.variables['rh_wmo'][t_id,...]=hur
-            output.variables['A'][t_id,...]=A
-        elif 'hur' in data.variables.keys():
-            hur=data.variables['hur'][t_id,...]
-            A = 1.0 / (1.0 + hur * (1.0 / massfraction_air - 1.0))
-            output.variables['A'][t_id,...]=A
-        else:
-            raise IOError('Input file should contain hus or hur')
+        #CREATE rh_wmo IF massfraction_air IS AVAILABLE:
+        if params_in_output(output,('A','massfraction_air')) and 'rh_wmo' not in output.variables.keys():
+            rh_wmo_function=np.vectorize(lambda A, massfraction_air: (1.0 / A - 1.0) / (1.0 / massfraction_air - 1.0))
+            rh_wmo_function.__name__='rh_wmo'
+            rh_wmo_function.__doc__='rh_wmo(A,massfraction_air)'
+            output = create_output(args,output,rh_wmo_function,fill_value)
 
-        #First find the relative humidity:
-        for var in out_var_list:
-            if find_first_input(thermo[var])=='A':
-                output.variables[var][t_id,...]=np.ma.filled(mp_vec_masked(thermo[var],(A,T,p)),fill_value=fill_value)
-            elif find_first_input(thermo[var])=='rh_wmo':
-                output.variables[var][t_id,...]=np.ma.filled(mp_vec_masked(thermo[var],(hur,T,p)),fill_value=fill_value)
-            else:
-                raise IOError('Unknown interpolation input of variable '+var+': '+find_first_input(thermo[var]))
+        #SECOND PASS:
+        #Find the available parameters sets:
+        available_params=[params for params in valid_params if params_in_output(output,params)]
 
-            if args.exact>0:
-                pool=mp.Pool(processes=args.exact)
-                output.variables[var+'_exact'][t_id,...]=np.ma.filled(
-                                                            mp_vec_masked(getattr(
-                                                                             getattr(
-                                                                                liq_ice_air,thermo[var]._input_type),var
-                                                                                    ),
-                                                                             (A,T,p,1e5*np.ones_like(A)),
-                                                                             pool=pool
-                                                                         ),fill_value=fill_value
-                                                                      )
-                pool.close()
-        output.sync()
-    return
+        available_var_list=[ var for var in out_var_list if function_params(thermo[var])[:3] in available_params]
+        for var in available_var_list:
+            output = create_output(args,output,thermo[var],fill_value)
 
-def find_first_input(interp_func):
-    #Finds the first input:
-    return interp_func.__doc__.splitlines()[0].replace(interp_func.__name__,'').replace('(','').replace(')','').split(',')[0]
+    output.close()
+
+def params_in_data(data,params):
+    return set([CMIP5_pyteos_equivalence[var] for var in params]).issubset(data.variables.keys())
+
+def params_in_output(data,params):
+    return set(params).issubset(data.variables.keys())
+
+def transfer_variables(data,output,available_params,fill_value):
+    for params in available_params:
+        for var in params:
+            #Use temperature as a model variable and create the necessary dimensions for ouput:
+            for dims in data.variables[CMIP5_pyteos_equivalence[var]].dimensions:
+                if dims not in output.dimensions.keys():
+                    output.createDimension(dims,len(data.dimensions[dims]))
+                    dim_var = output.createVariable(dims,'d',(dims,))
+                    dim_var[:] = data.variables[dims][:]
+                    output = replicate_netcdf_var(output,data,dims)
+                    output.sync()
+            if var not in output.variables.keys():
+                coord_var=output.createVariable(var,'d',tuple(data.variables[CMIP5_pyteos_equivalence[var]].dimensions),fill_value=fill_value)
+                output = replicate_netcdf_var_diff(output,data,CMIP5_pyteos_equivalence[var],var)
+                coord_var[:] = CMIP5_conversions[var](data.variables[CMIP5_pyteos_equivalence[var]][:])
+                output.sync()
+    return output
+
+def create_output(args,output,func,fill_value):
+    if not func.__name__ in output.variables.keys():
+        params_list=function_params(func)[:3]
+        output.createVariable(func.__name__,'d',tuple(output.variables[params_list[0]].dimensions),fill_value=fill_value)
+        
+        time_length=len(output.dimensions['time']) 
+        for t_id in range(0,time_length):
+            coordinates=[]
+            for var in params_list:
+                coordinates.append(output.variables[var][t_id,...])
+
+            output.variables[func.__name__][t_id,...]=np.ma.filled(mp_vec_masked(func,coordinates),fill_value=fill_value)
+            output.sync()
+    return output
+
+#    if args.exact>0:
+#        output.createVariable(func.__name__+'_exact','d',tuple(output.variables[params_list[0]].dimensions),fill_value=fill_value)
+#        if args.exact>0:
+#            pool=mp.Pool(processes=args.exact)
+#            if func._input_type=='g_ref':
+#                coordinates.append(1e5*np.ones_like(coordinates[0]))
+#            output.variables[func.__name__+'_exact'][t_id,...]=np.ma.filled(
+#                                                        mp_vec_masked(getattr(
+#                                                                         getattr(
+#                                                                            liq_ice_air,func._input_type),func.__name__
+#                                                                                ),
+#                                                                         tuple(coordinates),
+#                                                                         pool=pool
+#                                                                     ),fill_value=fill_value
+#                                                                  )
+#            pool.close()
+
+def function_params(interp_func):
+    return tuple(interp_func.__doc__.splitlines()[0].replace(interp_func.__name__,'').replace('(','').replace(')','').split(','))
 
 def replicate_netcdf_file(output,data):
     for att in data.ncattrs():
