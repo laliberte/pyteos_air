@@ -57,6 +57,13 @@ def create_thermo(args):
             rh_wmo_function.__doc__='rh_wmo(A,massfraction_air)'
             output = create_output(args,output,rh_wmo_function,fill_value)
 
+        if params_in_output(output,('rh_wmo','massfraction_air')) and 'A' not in output.variables.keys():
+            rh_wmo_function=np.vectorize(lambda rh_wmo, massfraction_air: 1.0 / (1.0 + rh_wmo * (1.0 / massfraction_air - 1.0)))
+            rh_wmo_function.__name__='A'
+            rh_wmo_function.__doc__='A(rh_wmo,massfraction_air)'
+            output = create_output(args,output,rh_wmo_function,fill_value)
+
+
         #SECOND PASS:
         #Find the available parameters sets:
         available_params=[params for params in valid_params if params_in_output(output,params)]
