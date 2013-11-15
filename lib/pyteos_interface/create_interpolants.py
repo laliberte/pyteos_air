@@ -88,7 +88,11 @@ class Interpolated_data:
             dp=p_sup-p_low
         
             interpolants=np.vectorize(lambda x,y,z: self._interpolants[z].ev(x,y))
-            return interpolants(A,T,p_ind_sup)*(p-p_low)/dp + interpolants(A,T,p_ind_low)*(p_sup-p)/dp
+            temp=(interpolants(A,T,p_ind_sup)*(p-p_low) + interpolants(A,T,p_ind_low)*(p_sup-p))
+            temp[np.abs(dp)>0.0]/=dp[np.abs(dp)>0.0]
+            temp[np.abs(dp)==0.0]=np.nan
+            return temp
+            #return interpolants(A,T,p_ind_sup)*(p-p_low)/dp + interpolants(A,T,p_ind_low)*(p_sup-p)/dp
         else:
             return
         

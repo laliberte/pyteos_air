@@ -105,6 +105,7 @@ subroutine liq_ice_air_g(in_name,in_q,in_t,in_p, k, l, m, out_val)
     use liq_ice_air_5b
     use liq_ice_air_5c
     use liq_ice_air_5d
+    !use liq_ice_air_5e
     implicit none
     integer :: k, l, m, idk, idl, idm
     real(8) :: in_q(k,l,m), in_t(k,l,m), in_p(k,l,m)
@@ -136,6 +137,10 @@ subroutine liq_ice_air_g(in_name,in_q,in_t,in_p, k, l, m, out_val)
                     out_val(idk,idl,idm)=liq_ice_air_g_temperatureequi_si(&
                     in_q(idk,idl,idm),&
                     in_t(idk,idl,idm), in_p(idk,idl,idm))
+                !case( 'temperaturewetbulb' )
+                !    out_val(idk,idl,idm)=liq_ice_air_g_temperaturewetbulb_si(&
+                !    in_q(idk,idl,idm),&
+                !    in_t(idk,idl,idm), in_p(idk,idl,idm))
                 case default
                     write(*,*) 'Unknown function'
             end select

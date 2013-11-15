@@ -78,7 +78,8 @@ character*16, private :: version = 'October 2012'
 
 public :: &
           liq_ice_air_h_temperature_si, &
-          liq_ice_air_h_density_si
+          liq_ice_air_h_density_si, &
+          liq_ice_air_h_enthalpy_si
 
 !CONTROL PARAMETERS OF THE EQUI TEMPERATURE ITERATION
 integer ctrl_initialized
@@ -154,7 +155,7 @@ endif
 end function
 
 function liq_ice_air_h_density_si(a_si, eta_si, p_si)
-!THIS FUNCTION COMPUTES THE TEMPERATURE OF AIR
+!THIS FUNCTION COMPUTES THE DENSITY OF AIR
 !SHOULD BE VALID OVER THE WHOLE REGION OF VALIDILITY OF TEOS-10
 
 !OUTPUT:
@@ -228,8 +229,80 @@ else
 endif
 end function
 
+function liq_ice_air_h_enthalpy_si(a_si, eta_si, p_si)
+!THIS FUNCTION COMPUTES THE ENTHALPY OF AIR
+!SHOULD BE VALID OVER THE WHOLE REGION OF VALIDILITY OF TEOS-10
 
+!OUTPUT:
+!H - ENTHALPY
 
+!INPUTS:
+!A_SI      ABSOLUTE DRY-AIR MASS FRACTION IN KG/KG
+!ETA_SI      ABSOLUTE IN-SITU ENTROPY
+!P_SI      ABSOLUTE IN-SITU PRESSURE IN PA
+!
+!Note that this is a good template for converting liq_air_g* and ice_air_g* functions to
+!liq_ice_air_h*. The liq_ice_air_h* functions are more robust at the triple point since it is
+!possible to obtain an exact expression for the mixed liquid/ice state.
+
+real*8 liq_ice_air_h_enthalpy_si, a_si, eta_si, p_si
+real*8 t_freeze, icl, wt, t_si
+
+liq_ice_air_h_enthalpy_si = errorreturn
+
+if(a_si < 0d0 .or. a_si > 1d0) return
+if(p_si < 0d0) return
+
+if(a_si == 1d0) then
+    !No water:
+    t_si = air_temperature_si(a_si, eta_si, p_si)
+    liq_ice_air_h_enthalpy_si = air_g_enthalpy_si(a_si, t_si, p_si)
+else
+    !Try equilibrium without condensate:
+    t_si = air_temperature_si(a_si, eta_si, p_si)
+    !Check if no condensation makes sense:
+    if(t_si/=errorreturn) then
+        if(set_liq_ice_air_eq_at_p(p_si) == errorreturn) return
+        t_freeze=liq_ice_air_temperature_si()
+        !If the freezing temperature returns an error this function will return an error:
+        if(t_freeze==errorreturn) return
+
+        if(t_si<t_freeze) then
+            !Freezing conditions, use ice_air:
+            icl = ice_air_icl_si(a_si,t_si,p_si)
+            if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
+                !Air is below the isentropic condensation level -> no condensation
+                liq_ice_air_h_enthalpy_si = air_g_enthalpy_si(a_si, t_si, p_si)
+                return
+            endif
+        else
+            !Non-Freezing conditions, use ice_air:
+            icl = liq_air_icl_si(a_si,t_si,p_si)
+            if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
+                !Air is below the isentropic condensation level -> no condensation
+                liq_ice_air_h_enthalpy_si = air_g_enthalpy_si(a_si, t_si, p_si)
+                return
+            endif
+        endif
+    endif
+
+    !If we have not returned, must check for condensation and mixed state:
+    wt = liq_ice_air_h_liquidfraction_of_condensate_si(a_si,eta_si,p_si)
+    if(wt==1d0) then
+        !Pure water condensate:
+        t_si = liq_air_h_temperature_si(a_si, eta_si, p_si)
+        liq_ice_air_h_enthalpy_si = liq_air_g_enthalpy_si(a_si, t_si, p_si)
+    elseif(wt==0d0) then
+        !Pure ice condensate:
+        t_si = ice_air_h_temperature_si(a_si, eta_si, p_si)
+        liq_ice_air_h_enthalpy_si = ice_air_g_enthalpy_si(a_si, t_si, p_si)
+    else
+        !Mixed state water/ice:
+        if(set_liq_ice_air_eq_at_wa_eta_wt(a_si,eta_si,wt) == errorreturn) return
+        liq_ice_air_h_enthalpy_si = liq_ice_air_enthalpy_si()
+    endif
+endif
+end function
 
 function liq_ice_air_h_liquidfraction_of_condensate_si(a_si,eta_si,p_si)
 !THIS FUNCTION RETURNS THE FRACTION OF LIQUID WATER IN WET ICE AIR IN KG/KG

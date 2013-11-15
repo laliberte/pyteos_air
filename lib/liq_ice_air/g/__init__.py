@@ -27,3 +27,4 @@ cond_entropy=           attfunc("cond_entropy","wet air entropy with all the moi
 density=                attfunc("density","wet air density (kg/m3).")
 rh_wmo=                 attfunc("rh_wmo","relative humidity using WMO definition")
 temperatureequi=        attfunc("temperatureequi","equivalent temperature (K)")
+temperaturewetbulb=     attfunc("temperaturewetbulb","wet bulb temperature (K)")

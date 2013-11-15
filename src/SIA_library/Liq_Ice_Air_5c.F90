@@ -68,6 +68,7 @@ use ice_air_4b
 use ice_air_4c
 use ice_air_4d
 use liq_ice_air_4
+use liq_ice_air_5b
 
 implicit none
 private
@@ -76,9 +77,54 @@ character*16, private :: version = 'October 2012'
 
 public :: &
           liq_ice_air_g_cond_entropy_si,&
+          liq_ice_air_g_wb_entropy_si,&
           liq_ice_air_g_cond_cp_si
 
 contains
+
+function liq_ice_air_g_wb_entropy_si(a_si, t_si, p_si)
+!THIS FUNCTION COMPUTES THE CONDENSATION ENTROPY OF AIR AT FIXED PRESSURE AND FIXED DRY AIR MASS FRACTION.
+
+!OUTPUT:
+!ETA(A,T,P,PR) CONDENSATION ENTROPY OF ICE AIR OR LIQUID AIR 
+
+!INPUTS:
+!A_SI      ABSOLUTE DRY-AIR MASS FRACTION IN KG/KG
+!T_SI      ABSOLUTE IN-SITU TEMPERATURE IN K
+!P_SI      ABSOLUTE IN-SITU PRESSURE IN PA
+!PR_SI     REFERENCE PRESSURE IN PA
+
+real*8 liq_ice_air_g_wb_entropy_si, a_si, t_si, p_si
+real*8 t_freeze, wt, a_sat
+
+liq_ice_air_g_wb_entropy_si = errorreturn
+
+if(a_si < 0d0 .or. a_si > 1d0) return
+if(t_si < 0d0) return
+if(p_si < 0d0) return
+
+if(set_liq_ice_air_eq_at_p(p_si) == errorreturn) return
+t_freeze=liq_ice_air_temperature_si()
+if(t_freeze==errorreturn) return
+
+a_sat=liq_ice_air_massfraction_air_si(t_si,p_si)
+if(a_sat==errorreturn) return
+
+if(t_si<t_freeze) then
+    !condensation against ice
+    liq_ice_air_g_wb_entropy_si=ice_air_g_cond_entropy_si(a_sat, t_si, p_si,a_si)
+elseif(t_si>t_freeze) then
+    !condensation against liquid
+    liq_ice_air_g_wb_entropy_si=liq_air_g_cond_entropy_si(a_sat, t_si, p_si,a_si)
+else
+    !at freezing point: set entropy with only condensates, half in water, half in ice
+    wt=0.5d0
+    if(set_liq_ice_air_eq_at_wa_wl_wi(a_sat,wt*(a_si-a_sat),(1d0-wt)*(a_si-a_sat)) == errorreturn) return
+    liq_ice_air_g_wb_entropy_si=liq_ice_air_entropy_si()
+endif
+
+end function
+
 
 function liq_ice_air_g_cond_entropy_si(a_si, t_si, p_si)
 !THIS FUNCTION COMPUTES THE CONDENSATION ENTROPY OF AIR AT FIXED PRESSURE AND FIXED DRY AIR MASS FRACTION.

@@ -109,6 +109,8 @@ def create_output(args,output,func,fill_value):
             for var in params_list:
                 coordinates.append(output.variables[var][t_id,...])
 
+            #temp=np.ma.filled(mp_vec_masked(func,coordinates),fill_value=fill_value)
+            #print temp.max()
             output.variables[func.__name__][t_id,...]=np.ma.filled(mp_vec_masked(func,coordinates),fill_value=fill_value)
             output.sync()
     return output
@@ -163,7 +165,7 @@ def replicate_netcdf_var_diff(output,data,var,var_out):
     return output
 
 def mp_vec_masked(func,args,pool=None):
-    fill_value=1e90
+    fill_value=1e20
     #This function simplifies the use of the multiprocessing toolbox.
     if pool:
         args=np.broadcast_arrays(*args)
@@ -179,6 +181,7 @@ def mp_vec_masked(func,args,pool=None):
                                     pool.map(tuple_function,zip(*iter_list))),axis=dim_index)
     else:
         out_var = func(*args)
+    out_var = np.ma.masked_where(np.isnan(out_var),out_var)
     return np.ma.masked_where(abs(out_var)>=fill_value,out_var)
 
 def tuple_function(args):
@@ -195,7 +198,7 @@ def main():
     This script computes the pyteos_air functions stored in a pickle file created by
     create_interpolants.
 
-    from the air temperature (a), air pressure (pa), and the Specific 
+    from the air temperature (ta), air pressure (pa), and the Specific 
     Total Water Content (hus) which can be taken equal to the
     Specific Humidity if the climate model does not allow condensated
     water.
@@ -220,7 +223,7 @@ def main():
 
     parser.add_argument('-e','--exact',type=int,
                          default=0,
-                         help='If set to a value EXACT larger than 0, computes the exact values using liq_ice_air (can be slow) using EAXCT processors.')
+                         help='If set to a value EXACT larger than 0, computes the exact values using liq_ice_air (can be extremely slow) using EXACT processors.')
     
     args = parser.parse_args()
 

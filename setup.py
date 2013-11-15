@@ -57,6 +57,7 @@ teos_files=[
 'Liq_Ice_Air_5b.F90',
 'Liq_Ice_Air_5c.F90',
 'Liq_Ice_Air_5d.F90',
+#'Liq_Ice_Air_5e.F90',
 'Flu_IF97_5.F90',
 'Ice_Flu_5.F90',
 'Liq_F03_5.F90',
@@ -84,7 +85,7 @@ packages=[package_name+'.'+name for name in find_packages('lib')]
 packages.append(package_name)
 
 setup(name=package_name,
-    version = "0.4.5",
+    version = "0.5",
     packages=packages,
     package_dir = {package_name: 'lib'},
 
