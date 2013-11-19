@@ -306,6 +306,7 @@ do i=1,nlev
     p_next=p_prev-dp
 
     t_next=liq_ice_air_pottemp_si(a_prev,t_prev,p_prev,p_next)
+    !print *, p_prev, liq_ice_air_g_entropy_si(a_prev,t_prev,p_prev)+1377.926*(1.0-a_prev), t_next
     if(t_next==errorreturn.or.t_next<mix_air_tmin) exit
 
     a_sat = liq_ice_air_massfraction_air_si(t_next,p_next)

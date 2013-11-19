@@ -39,7 +39,7 @@ def create_thermo(args):
     #Find the available parameters sets:
     available_params=[params for params in valid_params if params_in_data(data,params)]
     #Transfer each of the variables in them to the output file:
-    output=transfer_variables(data,output,available_params,fill_value)
+    output=transfer_variables(args,data,output,available_params,fill_value)
     data.close()
 
     variable_list=[]
@@ -80,7 +80,7 @@ def params_in_data(data,params):
 def params_in_output(data,params):
     return set(params).issubset(data.variables.keys())
 
-def transfer_variables(data,output,available_params,fill_value):
+def transfer_variables(args,data,output,available_params,fill_value):
     for params in available_params:
         for var in params:
             #Use temperature as a model variable and create the necessary dimensions for ouput:
@@ -92,7 +92,7 @@ def transfer_variables(data,output,available_params,fill_value):
                     output = replicate_netcdf_var(output,data,dims)
                     output.sync()
             if var not in output.variables.keys():
-                coord_var=output.createVariable(var,'d',tuple(data.variables[CMIP5_pyteos_equivalence[var]].dimensions),fill_value=fill_value)
+                coord_var=output.createVariable(var,'d',tuple(data.variables[CMIP5_pyteos_equivalence[var]].dimensions),fill_value=fill_value,zlib=args.zlib)
                 output = replicate_netcdf_var_diff(output,data,CMIP5_pyteos_equivalence[var],var)
                 coord_var[:] = CMIP5_conversions[var](data.variables[CMIP5_pyteos_equivalence[var]][:])
                 output.sync()
@@ -101,7 +101,7 @@ def transfer_variables(data,output,available_params,fill_value):
 def create_output(args,output,func,fill_value):
     if not func.__name__ in output.variables.keys():
         params_list=function_params(func)[:3]
-        output.createVariable(func.__name__,'d',tuple(output.variables[params_list[0]].dimensions),fill_value=fill_value)
+        output.createVariable(func.__name__,'d',tuple(output.variables[params_list[0]].dimensions),fill_value=fill_value,zlib=args.zlib)
         
         time_length=len(output.dimensions['time']) 
         for t_id in range(0,time_length):
