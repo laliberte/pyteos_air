@@ -4,6 +4,9 @@ import numpy as np
 import pickle
 import scipy.interpolate as interp
 import multiprocessing as mp
+import os
+import sys
+import psutil
 
 #Define the correspondence between pyteos variable names and CMIP5 naming convention:
 CMIP5_pyteos_equivalence={'A':'hus',
@@ -22,7 +25,14 @@ valid_params=[ ('T','p'),
                ('rh_wmo','T','p'),
                ('A','eta','p')]
 
+def print_memory_usage(process):
+    nr_mbytes = process.get_memory_info()[0] / 1048576.0
+    sys.stdout.write("{}\n".format(nr_mbytes))
+    sys.stdout.flush()
+
 def create_thermo(args):
+    process = psutil.Process(os.getpid())
+
     #LOAD THE DATA:
     thermo = pickle.load(args.in_thermodynamic_file)
     data = Dataset(args.in_netcdf_file)
@@ -34,6 +44,7 @@ def create_thermo(args):
 
     #Determine the output variables:
     out_var_list=thermo.keys()
+    print_memory_usage(process)
 
     #FIRST PASS:
     #Find the available parameters sets:
@@ -41,6 +52,7 @@ def create_thermo(args):
     #Transfer each of the variables in them to the output file:
     output=transfer_variables(args,data,output,available_params,fill_value)
     data.close()
+    print_memory_usage(process)
 
     variable_list=[]
 
@@ -48,6 +60,7 @@ def create_thermo(args):
         variable_list=output.variables.keys()
         available_var_list=[ var for var in out_var_list if function_params(thermo[var])[:3] in available_params]
         for var in available_var_list:
+            print_memory_usage(process)
             output = create_output(args,output,thermo[var],fill_value)
 
         #CREATE rh_wmo IF massfraction_air IS AVAILABLE:
@@ -70,6 +83,7 @@ def create_thermo(args):
 
         available_var_list=[ var for var in out_var_list if function_params(thermo[var])[:3] in available_params]
         for var in available_var_list:
+            print_memory_usage(process)
             output = create_output(args,output,thermo[var],fill_value)
 
     output.close()
