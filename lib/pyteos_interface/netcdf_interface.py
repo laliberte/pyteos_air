@@ -92,7 +92,7 @@ def transfer_variables(args,data,output,available_params,fill_value):
                     output = replicate_netcdf_var(output,data,dims)
                     output.sync()
             if var not in output.variables.keys():
-                coord_var=output.createVariable(var,'d',tuple(data.variables[CMIP5_pyteos_equivalence[var]].dimensions),fill_value=fill_value,zlib=args.zlib)
+                coord_var=output.createVariable(var,'f',tuple(data.variables[CMIP5_pyteos_equivalence[var]].dimensions),fill_value=fill_value,zlib=args.zlib)
                 output = replicate_netcdf_var_diff(output,data,CMIP5_pyteos_equivalence[var],var)
                 coord_var[:] = CMIP5_conversions[var](data.variables[CMIP5_pyteos_equivalence[var]][:])
                 output.sync()
@@ -101,7 +101,7 @@ def transfer_variables(args,data,output,available_params,fill_value):
 def create_output(args,output,func,fill_value):
     if not func.__name__ in output.variables.keys():
         params_list=function_params(func)[:3]
-        output.createVariable(func.__name__,'d',tuple(output.variables[params_list[0]].dimensions),fill_value=fill_value,zlib=args.zlib)
+        output.createVariable(func.__name__,'f',tuple(output.variables[params_list[0]].dimensions),fill_value=fill_value,zlib=args.zlib)
         
         time_length=len(output.dimensions['time']) 
         for t_id in range(0,time_length):
