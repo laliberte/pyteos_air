@@ -121,7 +121,7 @@ endif
 
 end function
 
-function liq_ice_air_g_entropy_si(a_si, t_si, p_si)
+function liq_ice_air_g_entropy_si(wa_si, t_si, p_si)
 !THIS FUNCTION COMPUTES THE ENTROPY OF AIR AT FIXED PRESSURE AND FIXED DRY AIR MASS FRACTION.
 
 !OUTPUT:
@@ -132,17 +132,17 @@ function liq_ice_air_g_entropy_si(a_si, t_si, p_si)
 !T_SI      ABSOLUTE IN-SITU TEMPERATURE IN K
 !P_SI      ABSOLUTE IN-SITU PRESSURE IN PA
 
-real*8 liq_ice_air_g_entropy_si, a_si, t_si, p_si
+real*8 liq_ice_air_g_entropy_si, wa_si, t_si, p_si
 real*8 t_freeze, icl
 
 liq_ice_air_g_entropy_si = errorreturn
 
-if(a_si < 0d0 .or. a_si > 1d0) return
+if(wa_si < 0d0 .or. wa_si > 1d0) return
 if(t_si < 0d0) return
 if(p_si < 0d0) return
 
-if(a_si==1d0) then
-    liq_ice_air_g_entropy_si = air_g_entropy_si(a_si, t_si, p_si)
+if(wa_si==1d0) then
+    liq_ice_air_g_entropy_si = air_g_entropy_si(wa_si, t_si, p_si)
     return
 endif
 
@@ -151,24 +151,24 @@ t_freeze=liq_ice_air_temperature_si()
 if(t_freeze==errorreturn) return
 
 if(t_si<t_freeze) then
-    icl = ice_air_icl_si(a_si,t_si,p_si)
+    icl = ice_air_icl_si(wa_si,t_si,p_si)
     if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
-        liq_ice_air_g_entropy_si=air_g_entropy_si(a_si, t_si, p_si)
+        liq_ice_air_g_entropy_si=air_g_entropy_si(wa_si, t_si, p_si)
     else
-        liq_ice_air_g_entropy_si=ice_air_g_entropy_si(a_si, t_si, p_si)
+        liq_ice_air_g_entropy_si=ice_air_g_entropy_si(wa_si, t_si, p_si)
     endif
 elseif(t_si>=t_freeze) then
 !elseif(t_si>t_freeze) then
-    icl = liq_air_icl_si(a_si,t_si,p_si)
+    icl = liq_air_icl_si(wa_si,t_si,p_si)
     if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
-        liq_ice_air_g_entropy_si=air_g_entropy_si(a_si, t_si, p_si)
+        liq_ice_air_g_entropy_si=air_g_entropy_si(wa_si, t_si, p_si)
     else
-        liq_ice_air_g_entropy_si=liq_air_g_entropy_si(a_si, t_si, p_si)
+        liq_ice_air_g_entropy_si=liq_air_g_entropy_si(wa_si, t_si, p_si)
     endif
 !else
 !    !at freezing point
 !    wt=0.5d0
-!    if(set_liq_ice_air_eq_at_wa_wl_wi(a_si,wt*(1d0-a_si),(1d0-wt)*(1d0-a_si)) == errorreturn) return
+!    if(set_liq_ice_air_eq_at_wa_wl_wi(wa_si,wt*(1d0-a_si),(1d0-wt)*(1d0-a_si)) == errorreturn) return
 !    liq_ice_air_g_entropy_si=liq_ice_air_entropy_si()
 endif
 

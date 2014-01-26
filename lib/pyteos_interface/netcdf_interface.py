@@ -31,7 +31,7 @@ def print_memory_usage(process):
     sys.stdout.flush()
 
 def create_thermo(args):
-    process = psutil.Process(os.getpid())
+
 
     #LOAD THE DATA:
     thermo = pickle.load(args.in_thermodynamic_file)
@@ -44,7 +44,6 @@ def create_thermo(args):
 
     #Determine the output variables:
     out_var_list=thermo.keys()
-    print_memory_usage(process)
 
     #FIRST PASS:
     #Find the available parameters sets:
@@ -52,7 +51,6 @@ def create_thermo(args):
     #Transfer each of the variables in them to the output file:
     output=transfer_variables(args,data,output,available_params,fill_value)
     data.close()
-    print_memory_usage(process)
 
     variable_list=[]
 
@@ -60,7 +58,7 @@ def create_thermo(args):
         variable_list=output.variables.keys()
         available_var_list=[ var for var in out_var_list if function_params(thermo[var])[:3] in available_params]
         for var in available_var_list:
-            print_memory_usage(process)
+            print var
             output = create_output(args,output,thermo[var],fill_value)
 
         #CREATE rh_wmo IF massfraction_air IS AVAILABLE:
@@ -69,13 +67,14 @@ def create_thermo(args):
             rh_wmo_function.__name__='rh_wmo'
             rh_wmo_function.__doc__='rh_wmo(A,massfraction_air)'
             output = create_output(args,output,rh_wmo_function,fill_value)
+            del rh_wmo_function
 
         if params_in_output(output,('rh_wmo','massfraction_air')) and 'A' not in output.variables.keys():
             rh_wmo_function=np.vectorize(lambda rh_wmo, massfraction_air: 1.0 / (1.0 + rh_wmo * (1.0 / massfraction_air - 1.0)))
             rh_wmo_function.__name__='A'
             rh_wmo_function.__doc__='A(rh_wmo,massfraction_air)'
             output = create_output(args,output,rh_wmo_function,fill_value)
-
+            del rh_wmo_function
 
         #SECOND PASS:
         #Find the available parameters sets:
@@ -83,7 +82,7 @@ def create_thermo(args):
 
         available_var_list=[ var for var in out_var_list if function_params(thermo[var])[:3] in available_params]
         for var in available_var_list:
-            print_memory_usage(process)
+            print var
             output = create_output(args,output,thermo[var],fill_value)
 
     output.close()
@@ -126,7 +125,9 @@ def create_output(args,output,func,fill_value):
             #temp=np.ma.filled(mp_vec_masked(func,coordinates),fill_value=fill_value)
             #print temp.max()
             output.variables[func.__name__][t_id,...]=np.ma.filled(mp_vec_masked(func,coordinates),fill_value=fill_value)
+            del coordinates
             output.sync()
+    print_memory_usage(args.process)
     return output
 
 #    if args.exact>0:
@@ -241,6 +242,7 @@ def main():
     
     args = parser.parse_args()
 
+    args.process = psutil.Process(os.getpid())
     create_thermo(args)
 
 if __name__ == "__main__":

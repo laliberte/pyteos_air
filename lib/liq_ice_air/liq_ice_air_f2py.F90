@@ -180,6 +180,18 @@ subroutine liq_ice_air_h(in_name,in_q,in_s,in_p, k, l, m, out_val)
                 case( 'density' )
                     out_val(idk,idl,idm)=liq_ice_air_h_density_si(in_q(idk,idl,idm),&
                     in_s(idk,idl,idm), in_p(idk,idl,idm))
+                case( 'enthalpy' )
+                    out_val(idk,idl,idm)=liq_ice_air_h_enthalpy_si(in_q(idk,idl,idm),&
+                    in_s(idk,idl,idm), in_p(idk,idl,idm))
+                case( 'gc_gv' )
+                    out_val(idk,idl,idm)=liq_ice_air_h_gc_gv_si(in_q(idk,idl,idm),&
+                    in_s(idk,idl,idm), in_p(idk,idl,idm))
+                case( 'gd_gc' )
+                    out_val(idk,idl,idm)=liq_ice_air_h_gd_gc_si(in_q(idk,idl,idm),&
+                    in_s(idk,idl,idm), in_p(idk,idl,idm))
+                case( 'gh_gc' )
+                    out_val(idk,idl,idm)=liq_ice_air_h_gh_gc_si(in_q(idk,idl,idm),&
+                    in_s(idk,idl,idm), in_p(idk,idl,idm))
                 case default
                     write(*,*) 'Unknown function'
             end select
