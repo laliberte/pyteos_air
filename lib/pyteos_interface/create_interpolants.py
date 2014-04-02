@@ -1,6 +1,5 @@
 import numpy as np
 import scipy.interpolate as interp
-import matplotlib.pyplot as plt
 
 from create_gridded_data import create_gridded_data
 
@@ -103,4 +102,25 @@ def interp_linear(args):
 def function_parameters(func):
     func_desc=getattr(func,'func_doc')
     return [ x.split(':')[1][6:] for x in func_desc.split('\n') if (len(x)>=6 and x[:6]==':param')]
+
+def pickle_interpolants(realm,input_type,functions_list,thermo_axes,file_name,num_procs=1):
+    """
+    :param realm: Realm (e.g. 'lid_ice_air')
+    :type realm: str.
+    :param input_type: Type of arguments (e.g. 'g')
+    :type T: str.
+    :param functions_list: List of function (e.g. ['density','enthalpy'])
+    :type functions_list: list.
+    :param thermo_axes: dictionary of axes to interpolate to (e.g. {'A':[0.5,1.0],'T':[250,300],'p':[1e4,1e5]})
+    :type thermo_axes: dict.
+    :param file_name: Name of file to pickle to
+    :type file_name: str.
+
+    This function creates a pickle file that can be used with pyteos_nc. This greatly speeds up computation.
+    """
+
+    for function in functions:
+        func_list[function]=Interpolated_data(liq_ice_air,realm,function,thermo_axes,num_procs=num_procs)
+    file=open(file_name,'w')
+    pickle.dump(func_list,file)
 

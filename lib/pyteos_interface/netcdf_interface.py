@@ -58,7 +58,6 @@ def create_thermo(args):
         variable_list=output.variables.keys()
         available_var_list=[ var for var in out_var_list if function_params(thermo[var])[:3] in available_params]
         for var in available_var_list:
-            print var
             output = create_output(args,output,thermo[var],fill_value)
 
         #CREATE rh_wmo IF massfraction_air IS AVAILABLE:
@@ -82,7 +81,6 @@ def create_thermo(args):
 
         available_var_list=[ var for var in out_var_list if function_params(thermo[var])[:3] in available_params]
         for var in available_var_list:
-            print var
             output = create_output(args,output,thermo[var],fill_value)
 
     output.close()
@@ -127,7 +125,7 @@ def create_output(args,output,func,fill_value):
             output.variables[func.__name__][t_id,...]=np.ma.filled(mp_vec_masked(func,coordinates),fill_value=fill_value)
             del coordinates
             output.sync()
-    print_memory_usage(args.process)
+    #print_memory_usage(args.process)
     return output
 
 #    if args.exact>0:

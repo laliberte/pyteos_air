@@ -25,6 +25,7 @@ def attfunc(function_name,desc):
 entropy=                attfunc("entropy","wet air entropy (J/K).")
 cond_entropy=           attfunc("cond_entropy","wet air entropy with all the moisture in condensed phase (J/K)")
 density=                attfunc("density","wet air density (kg/m3).")
+enthalpy=               attfunc("enthalpy","wet air enthalpy (J).")
 rh_wmo=                 attfunc("rh_wmo","relative humidity using WMO definition")
 temperatureequi=        attfunc("temperatureequi","equivalent temperature (K)")
 temperaturewetbulb=     attfunc("temperaturewetbulb","wet bulb temperature (K)")
