@@ -84,6 +84,8 @@ public :: &
           liq_ice_air_h_enthalpy_si, &
           liq_ice_air_h_gc_gv_si, &
           liq_ice_air_h_gd_gc_si, &
+          liq_ice_air_h_gd_si, &
+          liq_ice_air_h_gc_si, &
           liq_ice_air_h_gh_gc_si
 
 
@@ -433,6 +435,211 @@ else
     endif
 endif
 end function
+
+function liq_ice_air_h_gc_si(wa_si, eta_si, p_si)
+!THIS FUNCTION COMPUTES 
+!THE GIBBS FUNCTION OF THE CONDENSATE
+!SHOULD BE VALID OVER THE WHOLE REGION OF VALIDILITY OF TEOS-10
+
+!OUTPUT:
+!GD-GC - DIFFERENCE BETWEEN CONDENSATE AND VAPOR GIBBS
+
+!INPUTS:
+!WA_SI      ABSOLUTE DRY-AIR MASS FRACTION IN KG/KG
+!ETA_SI      ABSOLUTE IN-SITU ENTROPY
+!P_SI      ABSOLUTE IN-SITU PRESSURE IN PA
+!
+!Note that this is a good template for converting liq_air_g* and ice_air_g* functions to
+!liq_ice_air_h*. The liq_ice_air_h* functions are more robust at the triple point since it is
+!possible to obtain an exact expression for the mixed liquid/ice state.
+
+real*8 liq_ice_air_h_gc_si, wa_si, eta_si, p_si
+real*8 t_freeze, icl, wt, t_si, a_si
+
+liq_ice_air_h_gc_si = errorreturn
+
+if(wa_si < 0d0 .or. wa_si > 1d0) return
+if(p_si < 0d0) return
+
+if(wa_si == 1d0) then
+    !No water:
+    t_si = air_temperature_si(wa_si, eta_si, p_si)
+
+    !To find condensate, Find freezing temperature:
+    if(set_liq_ice_air_eq_at_p(p_si) == errorreturn) return
+    t_freeze=liq_ice_air_temperature_si()
+    if(t_freeze==errorreturn) return
+    if(t_si<t_freeze) then
+        !Freezing
+        liq_ice_air_h_gc_si = ice_g_si(0,0, t_si, p_si)
+    else
+        !Not freezing
+        liq_ice_air_h_gc_si = liq_g_si(0,0, t_si, p_si)
+    endif
+else
+    !Try equilibrium without condensate:
+    t_si = air_temperature_si(wa_si, eta_si, p_si)
+    !Check if no condensation makes sense:
+    if(t_si/=errorreturn) then
+
+        if(set_liq_ice_air_eq_at_p(p_si) == errorreturn) return
+        t_freeze=liq_ice_air_temperature_si()
+        !If the freezing temperature returns an error this function will return an error:
+        if(t_freeze==errorreturn) return
+
+        if(t_si<t_freeze) then
+            !Freezing conditions, use ice_air:
+            icl = ice_air_icl_si(wa_si,t_si,p_si)
+            if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
+                !Air is below the isentropic condensation level -> no condensation
+                liq_ice_air_h_gc_si = ice_g_si(0,0, t_si, p_si)
+                return
+            endif
+        else
+            !Non-Freezing conditions, use ice_air:
+            icl = liq_air_icl_si(wa_si,t_si,p_si)
+            if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
+                !Air is below the isentropic condensation level -> no condensation
+                liq_ice_air_h_gc_si = liq_g_si(0,0, t_si, p_si)
+                return
+            endif
+        endif
+    endif
+
+    !If we have not returned, must check for condensation and mixed state:
+    wt = liq_ice_air_h_liquidfraction_of_condensate_si(wa_si,eta_si,p_si)
+    if(wt==1d0) then
+        !Pure water condensate:
+        t_si = liq_air_h_temperature_si(wa_si, eta_si, p_si)
+        liq_ice_air_h_gc_si = liq_g_si(0,0, t_si, p_si)
+    elseif(wt==0d0) then
+        !Pure ice condensate:
+        t_si = ice_air_h_temperature_si(wa_si, eta_si, p_si)
+        liq_ice_air_h_gc_si = ice_g_si(0,0, t_si, p_si)
+    else
+        !Mixed state water/ice:
+        if(set_liq_ice_air_eq_at_wa_eta_wt(wa_si,eta_si,wt) == errorreturn) return
+        t_si = liq_ice_air_temperature_si()
+        liq_ice_air_h_gc_si = (wt*liq_g_si(0,0, t_si, p_si)+(1.0-wt)*ice_g_si(0,0, t_si, p_si))
+    endif
+    if(liq_ice_air_h_gc_si==errorreturn) then
+        !If it fails, it is likely that we are outside the region of validity of moist air.
+        !For lack of better alternative, use dry air values:
+        !No water and ice:
+        t_si = air_temperature_si(a_si, eta_si, p_si)
+        liq_ice_air_h_gc_si = ice_g_si(0,0, t_si, p_si)
+    endif
+endif
+end function
+
+function liq_ice_air_h_gd_si(wa_si, eta_si, p_si)
+!THIS FUNCTION COMPUTES THE CHEMICAL POTENTIAL OF DRY AIR 
+!SHOULD BE VALID OVER THE WHOLE REGION OF VALIDILITY OF TEOS-10
+
+!OUTPUT:
+!GD-GC - DIFFERENCE BETWEEN CONDENSATE AND VAPOR GIBBS
+
+!INPUTS:
+!WA_SI      ABSOLUTE DRY-AIR MASS FRACTION IN KG/KG
+!ETA_SI      ABSOLUTE IN-SITU ENTROPY
+!P_SI      ABSOLUTE IN-SITU PRESSURE IN PA
+!
+!Note that this is a good template for converting liq_air_g* and ice_air_g* functions to
+!liq_ice_air_h*. The liq_ice_air_h* functions are more robust at the triple point since it is
+!possible to obtain an exact expression for the mixed liquid/ice state.
+
+real*8 liq_ice_air_h_gd_si, wa_si, eta_si, p_si
+real*8 t_freeze, icl, wt, t_si, a, gd, a_si
+
+liq_ice_air_h_gd_si = errorreturn
+
+if(wa_si < 0d0 .or. wa_si > 1d0) return
+if(p_si < 0d0) return
+
+if(wa_si == 1d0) then
+    !No water:
+    t_si = air_temperature_si(wa_si, eta_si, p_si)
+
+    !To find condensate, Find freezing temperature:
+    if(set_liq_ice_air_eq_at_p(p_si) == errorreturn) return
+    t_freeze=liq_ice_air_temperature_si()
+    if(t_freeze==errorreturn) return
+    if(t_si<t_freeze) then
+        !Freezing
+        gd = air_g_si(0,0,0,wa_si, t_si, p_si)+(1.0-wa_si)*air_g_si(1,0,0,wa_si, t_si, p_si)
+        liq_ice_air_h_gd_si = gd
+    else
+        !Not freezing
+        gd = air_g_si(0,0,0,wa_si, t_si, p_si)+(1.0-wa_si)*air_g_si(1,0,0,wa_si, t_si, p_si)
+        liq_ice_air_h_gd_si = gd
+    endif
+else
+    !Try equilibrium without condensate:
+    t_si = air_temperature_si(wa_si, eta_si, p_si)
+    !Check if no condensation makes sense:
+    if(t_si/=errorreturn) then
+
+        if(set_liq_ice_air_eq_at_p(p_si) == errorreturn) return
+        t_freeze=liq_ice_air_temperature_si()
+        !If the freezing temperature returns an error this function will return an error:
+        if(t_freeze==errorreturn) return
+
+        if(t_si<t_freeze) then
+            !Freezing conditions, use ice_air:
+            icl = ice_air_icl_si(wa_si,t_si,p_si)
+            if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
+                !Air is below the isentropic condensation level -> no condensation
+                gd = air_g_si(0,0,0,wa_si, t_si, p_si)+(1.0-wa_si)*air_g_si(1,0,0,wa_si, t_si, p_si)
+                liq_ice_air_h_gd_si = gd
+                return
+            endif
+        else
+            !Non-Freezing conditions, use ice_air:
+            icl = liq_air_icl_si(wa_si,t_si,p_si)
+            if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
+                !Air is below the isentropic condensation level -> no condensation
+                gd = air_g_si(0,0,0,wa_si, t_si, p_si)+(1.0-wa_si)*air_g_si(1,0,0,wa_si, t_si, p_si)
+                liq_ice_air_h_gd_si = gd
+                return
+            endif
+        endif
+    endif
+
+    !If we have not returned, must check for condensation and mixed state:
+    wt = liq_ice_air_h_liquidfraction_of_condensate_si(wa_si,eta_si,p_si)
+    if(wt==1d0) then
+        !Pure water condensate:
+        t_si = liq_air_h_temperature_si(wa_si, eta_si, p_si)
+        a = liq_air_massfraction_air_si(t_si, p_si) 
+        gd = air_g_si(0,0,0,a, t_si, p_si)+(1.0-a)*air_g_si(1,0,0,a, t_si, p_si)
+        liq_ice_air_h_gd_si = gd
+    elseif(wt==0d0) then
+        !Pure ice condensate:
+        t_si = ice_air_h_temperature_si(wa_si, eta_si, p_si)
+        a = ice_air_massfraction_air_si(t_si, p_si) 
+        gd = air_g_si(0,0,0,a, t_si, p_si)+(1.0-a)*air_g_si(1,0,0,a, t_si, p_si)
+        liq_ice_air_h_gd_si = gd
+    else
+        !Mixed state water/ice:
+        if(set_liq_ice_air_eq_at_wa_eta_wt(wa_si,eta_si,wt) == errorreturn) return
+        t_si = liq_ice_air_temperature_si()
+        a = liq_ice_air_airfraction_si()
+        gd = air_g_si(0,0,0,a, t_si, p_si)+(1.0-a)*air_g_si(1,0,0,a, t_si, p_si)
+        liq_ice_air_h_gd_si = gd
+    endif
+    if(liq_ice_air_h_gd_si==errorreturn) then
+        !If it fails, it is likely that we are outside the region of validity of moist air.
+        !For lack of better alternative, use dry air values:
+        !No water and ice:
+        a_si=1.0
+        t_si = air_temperature_si(a_si, eta_si, p_si)
+        gd = air_g_si(0,0,0,a_si, t_si, p_si)
+        liq_ice_air_h_gd_si = gd
+    endif
+endif
+end function
+
+
 
 function liq_ice_air_h_gd_gc_si(wa_si, eta_si, p_si)
 !THIS FUNCTION COMPUTES THE DIFFERENCE BETWEEN THE GIBBS FUNCTION OF THE DRY AIR AND

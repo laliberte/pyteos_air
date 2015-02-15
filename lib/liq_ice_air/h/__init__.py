@@ -48,6 +48,16 @@ At the freezing point, this function assumes that a combination of liquid water 
 combine to make sure that the temperature is constant between the Isentropic Freezing level \
 :func:`pyteos_air.liq_ice_air.il.ifl` and the Isentropic Melting Level :func:`pyteos_air.liq_ice_air.il.iml`")
 
+gd=attfunc("gd","gd (J).\n\n\
+At the freezing point, this function assumes that a combination of liquid water and ice will \
+combine to make sure that the temperature is constant between the Isentropic Freezing level \
+:func:`pyteos_air.liq_ice_air.il.ifl` and the Isentropic Melting Level :func:`pyteos_air.liq_ice_air.il.iml`")
+
+gc=attfunc("gc","gc (J).\n\n\
+At the freezing point, this function assumes that a combination of liquid water and ice will \
+combine to make sure that the temperature is constant between the Isentropic Freezing level \
+:func:`pyteos_air.liq_ice_air.il.ifl` and the Isentropic Melting Level :func:`pyteos_air.liq_ice_air.il.iml`")
+
 gh_gc=attfunc("gh_gc","gh_minus_gc (J).\n\n\
 At the freezing point, this function assumes that a combination of liquid water and ice will \
 combine to make sure that the temperature is constant between the Isentropic Freezing level \

@@ -192,6 +192,12 @@ subroutine liq_ice_air_h(in_name,in_q,in_s,in_p, k, l, m, out_val)
                 case( 'gd_gc' )
                     out_val(idk,idl,idm)=liq_ice_air_h_gd_gc_si(in_q(idk,idl,idm),&
                     in_s(idk,idl,idm), in_p(idk,idl,idm))
+                case( 'gd' )
+                    out_val(idk,idl,idm)=liq_ice_air_h_gd_si(in_q(idk,idl,idm),&
+                    in_s(idk,idl,idm), in_p(idk,idl,idm))
+                case( 'gc' )
+                    out_val(idk,idl,idm)=liq_ice_air_h_gc_si(in_q(idk,idl,idm),&
+                    in_s(idk,idl,idm), in_p(idk,idl,idm))
                 case( 'gh_gc' )
                     out_val(idk,idl,idm)=liq_ice_air_h_gh_gc_si(in_q(idk,idl,idm),&
                     in_s(idk,idl,idm), in_p(idk,idl,idm))
