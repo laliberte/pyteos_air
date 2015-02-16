@@ -31,9 +31,9 @@ class Interpolated_data:
             docstring+='p: '+str(thermo_axes['p'])+'\n'
             docstring+='The interpolation is a spline on constant p and linear along p.'
 
-            self._interpolants=interp_linear_3D(thermo_axes['A'],thermo_axes['eta'],thermo_axes['p'],thermo_data)
+            self._interpolants=interp_linear_3D((thermo_axes['A'],thermo_axes['eta'],thermo_axes['p'],thermo_data))
             
-            #map(
+            #self._interpolants=map(
             #                interp_linear,
             #                zip(
             #                    [thermo_axes['A'] for x in range(0,num_p)],
@@ -61,7 +61,7 @@ class Interpolated_data:
             docstring+='The interpolation is a spline on constant p and linear along p.'
 
 
-            self._interpolants=interp_linear_3D(thermo_axes[moisture_var],thermo_axes['T'],thermo_axes['p'],termo_data)
+            self._interpolants=interp_linear_3D((thermo_axes[moisture_var],thermo_axes['T'],thermo_axes['p'],thermo_data))
             #self._interpolants=map(
             #                interp_linear,
             #                zip(
@@ -77,7 +77,7 @@ class Interpolated_data:
             T, p = np.broadcast_arrays(*np.atleast_3d(*args))
             return np.reshape(self._interpolants.ev(np.ravel(T),np.ravel(p)),T.shape)
         elif self._input_type in ['h','g','g_ref']:
-            A, T, p =np.broadcast_arrays(*np.atleast_3d(*args))
+            #A, T, p =np.broadcast_arrays(*np.atleast_3d(*args))
             return self._interpolants(np.concatenate([a[...,np.newaxis] for a in np.broadcast_arrays(*np.atleast_3d(*args))],axis=-1))
 
             #Find the pressure bin:
@@ -104,7 +104,7 @@ def interp_linear(args):
     return nd_interp
 
 def interp_linear_3D(args):
-    nd_interp=interp.RegularGridInterpolator(args[:-1],args[-1])
+    nd_interp=interp.RegularGridInterpolator(args[:-1],args[-1],bounds_error=False)
     return nd_interp
 
 def function_parameters(func):
