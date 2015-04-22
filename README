@@ -29,4 +29,9 @@ NOTE: This package requires a Fortran 90 compiler. Sometimes numpy.disutils will
         python setup.py build --fcompiler=g95
       if 'g95' was in the list.
 
-Frederic Laliberte, November 20 2012
+VERSION HISTORY:
+
+0.6 : Faster netcdf interface for computing interpolated thermodynamic quantities.
+
+
+Frederic Laliberte, February 17 2015

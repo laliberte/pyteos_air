@@ -194,8 +194,9 @@ def mp_vec_masked(func,args,pool=None):
                                     pool.map(tuple_function,zip(*iter_list))),axis=dim_index)
     else:
         out_var = func(*args)
-    out_var = np.ma.masked_where(np.isnan(out_var),out_var)
-    return np.ma.masked_where(abs(out_var)>=fill_value,out_var)
+    #out_var = np.ma.masked_where(np.isnan(out_var),out_var)
+    #return np.ma.masked_where(np.abs(out_var)>=fill_value,out_var)
+    return np.ma.fix_invalid(out_var,fill_value=fill_value)
 
 def tuple_function(args):
     return args[0](*args[1:])
