@@ -32,15 +32,6 @@ class Interpolated_data:
             docstring+='The interpolation is a spline on constant p and linear along p.'
 
             self._interpolants=interp_linear_3D((thermo_axes['A'],thermo_axes['eta'],thermo_axes['p'],thermo_data))
-            
-            #self._interpolants=map(
-            #                interp_linear,
-            #                zip(
-            #                    [thermo_axes['A'] for x in range(0,num_p)],
-            #                    [thermo_axes['eta'] for x in range(0,num_p)],
-            #                    np.dsplit(thermo_data,num_p)
-            #                )
-            #                )
         elif input_type in ['g','g_ref']:
             self._p = thermo_axes['p']
             num_p=len(self._p)
@@ -62,14 +53,6 @@ class Interpolated_data:
 
 
             self._interpolants=interp_linear_3D((thermo_axes[moisture_var],thermo_axes['T'],thermo_axes['p'],thermo_data))
-            #self._interpolants=map(
-            #                interp_linear,
-            #                zip(
-            #                    [thermo_axes[moisture_var] for x in range(0,num_p)],
-            #                    [thermo_axes['T'] for x in range(0,num_p)],
-            #                    np.dsplit(thermo_data,num_p)
-            #                )
-            #                )
         self.__doc__=docstring
 
     def __call__(self,*args):
@@ -77,25 +60,7 @@ class Interpolated_data:
             T, p = np.broadcast_arrays(*np.atleast_3d(*args))
             return np.reshape(self._interpolants.ev(np.ravel(T),np.ravel(p)),T.shape)
         elif self._input_type in ['h','g','g_ref']:
-            #A, T, p =np.broadcast_arrays(*np.atleast_3d(*args))
             return self._interpolants(np.concatenate([a[...,np.newaxis] for a in np.broadcast_arrays(*np.atleast_3d(*args))],axis=-1))
-
-            #Find the pressure bin:
-            #p_ind_sup=np.apply_along_axis(np.digitize,0,p,self._p)
-            #p_ind_low=p_ind_sup-1
-            #p_ind_sup=np.minimum(p_ind_sup,len(self._p)-1)
-            #p_ind_low=np.maximum(p_ind_low,0)
-        
-            #pval=np.vectorize(lambda x: self._p[x])
-            #p_sup=pval(p_ind_sup)
-            #p_low=pval(p_ind_low)
-            #dp=p_sup-p_low
-        
-            #interpolants=np.vectorize(lambda x,y,z: self._interpolants[z].ev(x,y))
-            #temp=(interpolants(A,T,p_ind_sup)*(p-p_low) + interpolants(A,T,p_ind_low)*(p_sup-p))
-            #temp[np.abs(dp)>0.0]/=dp[np.abs(dp)>0.0]
-            #temp[np.abs(dp)==0.0]=np.nan
-            #return temp
         else:
             return
         
