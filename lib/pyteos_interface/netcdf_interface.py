@@ -94,7 +94,6 @@ def params_in_output(data,params):
 def transfer_variables(args,data,output,available_params,fill_value):
     for params in available_params:
         for var in params:
-            #Use temperature as a model variable and create the necessary dimensions for ouput:
             for dims in data.variables[CMIP5_pyteos_equivalence[var]].dimensions:
                 if dims not in output.dimensions.keys():
                     output.createDimension(dims,len(data.dimensions[dims]))
@@ -120,8 +119,6 @@ def create_output(args,output,func,fill_value):
             for var in params_list:
                 coordinates.append(output.variables[var][t_id,...])
 
-            #temp=np.ma.filled(mp_vec_masked(func,coordinates),fill_value=fill_value)
-            #print temp.max()
             output.variables[func.__name__][t_id,...]=np.ma.filled(mp_vec_masked(func,coordinates),fill_value=fill_value)
             del coordinates
             output.sync()

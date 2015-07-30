@@ -43,16 +43,14 @@ def create_gridded_data(realm,input_type,func,thermo_axes,num_procs=1):
                 A = np.where(rh_wmo>=1.0,A+1e-10,A)
             else:
                 A = np.reshape(thermo_axes['A'],[len(thermo_axes['A']),1,1])
-            #Fix problems close to dry state:
-            A = np.where(1.0-A<1e-10,1.0,A)
+
     elif input_type in ['h']:
         eta =np.reshape(thermo_axes['eta'],[1,len(thermo_axes['eta']),1])
         p =np.reshape(thermo_axes['p'],[1,1,len(thermo_axes['p'])])
         A = np.reshape(thermo_axes['A'],[len(thermo_axes['A']),1,1])
         
         #Fix problems close to dry state:
-        A = np.where(1.0-1e-10<A,1.0-1e-10,A)
-
+        #A = np.where(1.0-5e-6<A,1.0-5e-6,A)
 
     if input_type=='g_ref':
         result=mp_vec_masked(getattr(getattr(realm,input_type),func),(A,T,p,thermo_axes['pref']),pool=pool)
