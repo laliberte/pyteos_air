@@ -31,6 +31,10 @@ NOTE: This package requires a Fortran 90 compiler. Sometimes numpy.disutils will
 
 VERSION HISTORY:
 
+0.8 : Fixed a warning signal with missing values
+
+0.7 : The interpolation is now much faster
+
 0.6 : Faster netcdf interface for computing interpolated thermodynamic quantities.
 
 
