@@ -95,7 +95,7 @@ function liq_ice_air_g_wb_entropy_si(a_si, t_si, p_si)
 !PR_SI     REFERENCE PRESSURE IN PA
 
 real*8 liq_ice_air_g_wb_entropy_si, a_si, t_si, p_si
-real*8 t_freeze, wt, a_sat
+real*8 t_freeze, a_sat
 
 liq_ice_air_g_wb_entropy_si = errorreturn
 
@@ -103,24 +103,26 @@ if(a_si < 0d0 .or. a_si > 1d0) return
 if(t_si < 0d0) return
 if(p_si < 0d0) return
 
-if(set_liq_ice_air_eq_at_p(p_si) == errorreturn) return
-t_freeze=liq_ice_air_temperature_si()
-if(t_freeze==errorreturn) return
-
 a_sat=liq_ice_air_massfraction_air_si(t_si,p_si)
 if(a_sat==errorreturn) return
 
-if(t_si<t_freeze) then
-    !condensation against ice
-    liq_ice_air_g_wb_entropy_si=ice_air_g_cond_entropy_si(a_sat, t_si, p_si,a_si)
-elseif(t_si>t_freeze) then
-    !condensation against liquid
-    liq_ice_air_g_wb_entropy_si=liq_air_g_cond_entropy_si(a_sat, t_si, p_si,a_si)
+if(set_liq_ice_air_eq_at_p(p_si) == errorreturn) then
+    !Above or at triple point
+    t_freeze=liq_ice_air_temperature_si()
+    if(t_freeze==errorreturn) return
+
+    if(t_si<t_freeze) then
+        !condensation against ice
+        liq_ice_air_g_wb_entropy_si=ice_air_g_cond_entropy_si(a_sat, t_si, p_si,a_si)
+    elseif(t_si>t_freeze) then
+        !condensation against liquid
+        liq_ice_air_g_wb_entropy_si=liq_air_g_cond_entropy_si(a_sat, t_si, p_si,a_si)
+    else
+        liq_ice_air_g_wb_entropy_si=liq_ice_air_entropy_si()
+    endif
 else
-    !at freezing point: set entropy with only condensates, half in water, half in ice
-    wt=0.5d0
-    if(set_liq_ice_air_eq_at_wa_wl_wi(a_sat,wt*(a_si-a_sat),(1d0-wt)*(a_si-a_sat)) == errorreturn) return
-    liq_ice_air_g_wb_entropy_si=liq_ice_air_entropy_si()
+    !Below triple point
+    liq_ice_air_g_wb_entropy_si=ice_air_g_cond_entropy_si(a_sat, t_si, p_si,a_si)
 endif
 
 end function
@@ -139,7 +141,7 @@ function liq_ice_air_g_cond_entropy_si(a_si, t_si, p_si)
 !PR_SI     REFERENCE PRESSURE IN PA
 
 real*8 liq_ice_air_g_cond_entropy_si, a_si, t_si, p_si
-real*8 t_freeze, wt
+real*8 t_freeze
 
 liq_ice_air_g_cond_entropy_si = errorreturn
 
@@ -147,21 +149,25 @@ if(a_si < 0d0 .or. a_si > 1d0) return
 if(t_si < 0d0) return
 if(p_si < 0d0) return
 
-if(set_liq_ice_air_eq_at_p(p_si) == errorreturn) return
-t_freeze=liq_ice_air_temperature_si()
-if(t_freeze==errorreturn) return
+if(set_liq_ice_air_eq_at_p(p_si) == errorreturn) then
+    !Above or at triple point
+    t_freeze=liq_ice_air_temperature_si()
+    if(t_freeze==errorreturn) return
 
-if(t_si<t_freeze) then
+    if(t_si<t_freeze) then
+        !condensation against ice
+        liq_ice_air_g_cond_entropy_si=ice_air_g_cond_entropy_si(a_si, t_si, p_si,1d0)
+    elseif(t_si>t_freeze) then
+        !condensation against liquid
+        liq_ice_air_g_cond_entropy_si=liq_air_g_cond_entropy_si(a_si, t_si, p_si,1d0)
+    else
+        !at freezing point: set entropy with only condensates, half in water, half in ice
+        liq_ice_air_g_cond_entropy_si=liq_ice_air_entropy_si()
+    endif
+else
+    !Below triple point
     !condensation against ice
     liq_ice_air_g_cond_entropy_si=ice_air_g_cond_entropy_si(a_si, t_si, p_si,1d0)
-elseif(t_si>t_freeze) then
-    !condensation against liquid
-    liq_ice_air_g_cond_entropy_si=liq_air_g_cond_entropy_si(a_si, t_si, p_si,1d0)
-else
-    !at freezing point: set entropy with only condensates, half in water, half in ice
-    wt=0.5d0
-    if(set_liq_ice_air_eq_at_wa_wl_wi(a_si,wt*(1d0-a_si),(1d0-wt)*(1-a_si)) == errorreturn) return
-    liq_ice_air_g_cond_entropy_si=liq_ice_air_entropy_si()
 endif
 
 end function
@@ -187,21 +193,27 @@ if(a_si < 0d0 .or. a_si > 1d0) return
 if(t_si < 0d0) return
 if(p_si < 0d0) return
 
-if(set_liq_ice_air_eq_at_p(p_si) == errorreturn) return
-t_freeze=liq_ice_air_temperature_si()
-if(t_freeze==errorreturn) return
+if(set_liq_ice_air_eq_at_p(p_si) == errorreturn) then
+    !Above or at triple point
+    t_freeze=liq_ice_air_temperature_si()
+    if(t_freeze==errorreturn) return
 
-if(t_si<t_freeze) then
-    !equilibrium against ice
-    liq_ice_air_g_cond_cp_si=ice_air_g_cond_cp_si(a_si, t_si, p_si,1d0)
-elseif(t_si>=t_freeze) then
-!elseif(t_si>t_freeze) then
-    liq_ice_air_g_cond_cp_si=liq_air_g_cond_cp_si(a_si, t_si, p_si,1d0)
-!else
-!    !at freeze point
-!    wt=0.5d0
-!    if(set_liq_ice_air_eq_at_wa_wl_wi(a_si,wt*(1d0-a_si),(1d0-wt)*(1-a_si)) == errorreturn) return
-!    liq_ice_air_g_cond_cp_si=liq_ice_air_entropy_si()
+    if(t_si<t_freeze) then
+        !equilibrium against ice
+        liq_ice_air_g_cond_cp_si=ice_air_g_cond_cp_si(a_si, t_si, p_si,1d0)
+    elseif(t_si>=t_freeze) then
+    !elseif(t_si>t_freeze) then
+        liq_ice_air_g_cond_cp_si=liq_air_g_cond_cp_si(a_si, t_si, p_si,1d0)
+    !else
+    !    !at freeze point
+    !    wt=0.5d0
+    !    if(set_liq_ice_air_eq_at_wa_wl_wi(a_si,wt*(1d0-a_si),(1d0-wt)*(1-a_si)) == errorreturn) return
+    !    liq_ice_air_g_cond_cp_si=liq_ice_air_entropy_si()
+    endif
+else
+    !Below triple point
+        !equilibrium against ice
+        liq_ice_air_g_cond_cp_si=ice_air_g_cond_cp_si(a_si, t_si, p_si,1d0)
 endif
 
 end function

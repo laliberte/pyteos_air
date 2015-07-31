@@ -97,27 +97,35 @@ function liq_ice_air_massfraction_air_si(t_si, p_si)
 
 real*8 liq_ice_air_massfraction_air_si, t_si, p_si
 real*8 t_freeze
-!real*8 wt
 
 liq_ice_air_massfraction_air_si = errorreturn
 
 if(t_si < 0d0) return
 if(p_si < 0d0) return
 
-if(set_liq_ice_air_eq_at_p(p_si) == errorreturn) return
-t_freeze=liq_ice_air_temperature_si()
-if(t_freeze==errorreturn) return
+if(set_liq_ice_air_eq_at_p(p_si) /= errorreturn) then
+    !Above or at triple point
 
-if(t_si<t_freeze) then
+    t_freeze=liq_ice_air_temperature_si()
+    if(t_freeze==errorreturn) return
+
+    if(t_si<t_freeze) then
+        !Pure ice:
+        liq_ice_air_massfraction_air_si=ice_air_massfraction_air_si(t_si,p_si)
+    elseif (t_si>t_freeze) then 
+        !Pure water:
+        liq_ice_air_massfraction_air_si=liq_air_massfraction_air_si(t_si,p_si)
+    else
+        liq_ice_air_massfraction_air_si=liq_ice_air_airfraction_si()
+    endif
+else
+    !Below the triple point. Pure ice:
     liq_ice_air_massfraction_air_si=ice_air_massfraction_air_si(t_si,p_si)
-!elseif(t_si>t_freeze) then
-elseif(t_si>=t_freeze) then
-    liq_ice_air_massfraction_air_si=liq_air_massfraction_air_si(t_si,p_si)
-!The equilibrium requires a_si, making this computation awkward
-!else
-!    wt=0.5d0
-!    if(set_liq_ice_air_eq_at_wa_wl_wi(a_si,wt*(1d0-a_si),(1d0-wt)*(1d0-a_si)) == errorreturn) return
-!    liq_ice_air_massfraction_air_si=liq_ice_air_airfraction_si()
+endif
+
+if(liq_ice_air_massfraction_air_si==errorreturn) then
+   !massfraction should be 0
+   liq_ice_air_massfraction_air_si=0.0
 endif
 
 end function
@@ -147,30 +155,37 @@ if(wa_si==1d0) then
     return
 endif
 
-if(set_liq_ice_air_eq_at_p(p_si) == errorreturn) return
-t_freeze=liq_ice_air_temperature_si()
-if(t_freeze==errorreturn) return
+if(set_liq_ice_air_eq_at_p(p_si) /= errorreturn) then
+    !Above or at triple point
+    t_freeze=liq_ice_air_temperature_si()
+    if(t_freeze==errorreturn) return
 
-if(t_si<t_freeze) then
+    if(t_si<t_freeze) then
+        icl = ice_air_icl_si(wa_si,t_si,p_si)
+        if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
+            liq_ice_air_g_entropy_si=air_g_entropy_si(wa_si, t_si, p_si)
+        else
+            liq_ice_air_g_entropy_si=ice_air_g_entropy_si(wa_si, t_si, p_si)
+        endif
+    elseif(t_si>t_freeze) then
+        icl = liq_air_icl_si(wa_si,t_si,p_si)
+        if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
+            liq_ice_air_g_entropy_si=air_g_entropy_si(wa_si, t_si, p_si)
+        else
+            liq_ice_air_g_entropy_si=liq_air_g_entropy_si(wa_si, t_si, p_si)
+        endif
+    else
+        !at freezing point
+        liq_ice_air_g_entropy_si=liq_ice_air_entropy_si()
+    endif
+else
+    !Below triple point
     icl = ice_air_icl_si(wa_si,t_si,p_si)
     if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
         liq_ice_air_g_entropy_si=air_g_entropy_si(wa_si, t_si, p_si)
     else
         liq_ice_air_g_entropy_si=ice_air_g_entropy_si(wa_si, t_si, p_si)
     endif
-elseif(t_si>=t_freeze) then
-!elseif(t_si>t_freeze) then
-    icl = liq_air_icl_si(wa_si,t_si,p_si)
-    if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
-        liq_ice_air_g_entropy_si=air_g_entropy_si(wa_si, t_si, p_si)
-    else
-        liq_ice_air_g_entropy_si=liq_air_g_entropy_si(wa_si, t_si, p_si)
-    endif
-!else
-!    !at freezing point
-!    wt=0.5d0
-!    if(set_liq_ice_air_eq_at_wa_wl_wi(wa_si,wt*(1d0-a_si),(1d0-wt)*(1d0-a_si)) == errorreturn) return
-!    liq_ice_air_g_entropy_si=liq_ice_air_entropy_si()
 endif
 
 end function
@@ -187,7 +202,7 @@ function liq_ice_air_g_density_si(a_si, t_si, p_si)
 !P_SI      ABSOLUTE IN-SITU PRESSURE IN PA
 
 real*8 liq_ice_air_g_density_si, a_si, t_si, p_si
-real*8 t_freeze, icl, wt
+real*8 t_freeze, icl
 
 liq_ice_air_g_density_si = errorreturn
 
@@ -200,30 +215,36 @@ if(a_si==1d0) then
     return
 endif
 
-if(set_liq_ice_air_eq_at_p(p_si) == errorreturn) return
-t_freeze=liq_ice_air_temperature_si()
-if(t_freeze==errorreturn) return
+if(set_liq_ice_air_eq_at_p(p_si) /= errorreturn) then
+    !Above or at triple point
+    t_freeze=liq_ice_air_temperature_si()
+    if(t_freeze==errorreturn) return
 
-if(t_si<t_freeze) then
+    if(t_si<t_freeze) then
+        icl = ice_air_icl_si(a_si,t_si,p_si)
+        if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
+            liq_ice_air_g_density_si=air_g_density_si(a_si, t_si, p_si)
+        else
+            liq_ice_air_g_density_si=ice_air_g_density_si(a_si, t_si, p_si)
+        endif
+    elseif(t_si>t_freeze) then
+        icl = liq_air_icl_si(a_si,t_si,p_si)
+        if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
+            liq_ice_air_g_density_si=air_g_density_si(a_si, t_si, p_si)
+        else
+            liq_ice_air_g_density_si=liq_air_g_density_si(a_si, t_si, p_si)
+        endif
+    else
+        liq_ice_air_g_density_si=liq_ice_air_density_si()
+    endif
+else
+    !Below triple point
     icl = ice_air_icl_si(a_si,t_si,p_si)
     if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
         liq_ice_air_g_density_si=air_g_density_si(a_si, t_si, p_si)
     else
         liq_ice_air_g_density_si=ice_air_g_density_si(a_si, t_si, p_si)
     endif
-!elseif(t_si>=t_freeze) then
-elseif(t_si>t_freeze) then
-    icl = liq_air_icl_si(a_si,t_si,p_si)
-    if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
-        liq_ice_air_g_density_si=air_g_density_si(a_si, t_si, p_si)
-    else
-        liq_ice_air_g_density_si=liq_air_g_density_si(a_si, t_si, p_si)
-    endif
-else
-    !at freezing point
-    wt=0.5d0
-    if(set_liq_ice_air_eq_at_wa_wl_wi(a_si,wt*(1d0-a_si),(1d0-wt)*(1d0-a_si)) == errorreturn) return
-    liq_ice_air_g_density_si=liq_ice_air_density_si()
 endif
 
 end function
@@ -240,7 +261,7 @@ function liq_ice_air_g_enthalpy_si(a_si, t_si, p_si)
 !P_SI      ABSOLUTE IN-SITU PRESSURE IN PA
 
 real*8 liq_ice_air_g_enthalpy_si, a_si, t_si, p_si
-real*8 t_freeze, icl, wt
+real*8 t_freeze, icl
 
 liq_ice_air_g_enthalpy_si = errorreturn
 
@@ -253,30 +274,35 @@ if(a_si==1d0) then
     return
 endif
 
-if(set_liq_ice_air_eq_at_p(p_si) == errorreturn) return
-t_freeze=liq_ice_air_temperature_si()
-if(t_freeze==errorreturn) return
+if(set_liq_ice_air_eq_at_p(p_si) == errorreturn) then
+    !Above or at triple point
+    t_freeze=liq_ice_air_temperature_si()
+    if(t_freeze==errorreturn) return
 
-if(t_si<t_freeze) then
+    if(t_si<t_freeze) then
+        icl = ice_air_icl_si(a_si,t_si,p_si)
+        if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
+            liq_ice_air_g_enthalpy_si=air_g_enthalpy_si(a_si, t_si, p_si)
+        else
+            liq_ice_air_g_enthalpy_si=ice_air_g_enthalpy_si(a_si, t_si, p_si)
+        endif
+    elseif(t_si>t_freeze) then
+        icl = liq_air_icl_si(a_si,t_si,p_si)
+        if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
+            liq_ice_air_g_enthalpy_si=air_g_enthalpy_si(a_si, t_si, p_si)
+        else
+            liq_ice_air_g_enthalpy_si=liq_air_g_enthalpy_si(a_si, t_si, p_si)
+        endif
+    else
+        liq_ice_air_g_enthalpy_si=liq_ice_air_enthalpy_si()
+    endif
+else
     icl = ice_air_icl_si(a_si,t_si,p_si)
     if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
         liq_ice_air_g_enthalpy_si=air_g_enthalpy_si(a_si, t_si, p_si)
     else
         liq_ice_air_g_enthalpy_si=ice_air_g_enthalpy_si(a_si, t_si, p_si)
     endif
-!elseif(t_si>=t_freeze) then
-elseif(t_si>t_freeze) then
-    icl = liq_air_icl_si(a_si,t_si,p_si)
-    if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
-        liq_ice_air_g_enthalpy_si=air_g_enthalpy_si(a_si, t_si, p_si)
-    else
-        liq_ice_air_g_enthalpy_si=liq_air_g_enthalpy_si(a_si, t_si, p_si)
-    endif
-else
-    !at freezing point
-    wt=0.5d0
-    if(set_liq_ice_air_eq_at_wa_wl_wi(a_si,wt*(1d0-a_si),(1d0-wt)*(1d0-a_si)) == errorreturn) return
-    liq_ice_air_g_enthalpy_si=liq_ice_air_enthalpy_si()
 endif
 
 end function
@@ -296,7 +322,6 @@ function liq_ice_air_g_cp_si(a_si, t_si, p_si)
 
 real*8 liq_ice_air_g_cp_si, a_si, t_si, p_si
 real*8 t_freeze, icl
-!real*8 wt
 
 liq_ice_air_g_cp_si = errorreturn
 
@@ -304,26 +329,32 @@ if(a_si < 0d0 .or. a_si > 1d0) return
 if(t_si < 0d0) return
 if(p_si < 0d0) return
 
-if(set_liq_ice_air_eq_at_p(p_si) == errorreturn) return
-t_freeze=liq_ice_air_temperature_si()
-if(t_freeze==errorreturn) return
+if(set_liq_ice_air_eq_at_p(p_si) == errorreturn) then
+    !Above or at triple point
+    t_freeze=liq_ice_air_temperature_si()
+    if(t_freeze==errorreturn) return
 
-if(t_si<t_freeze) then
+    if(t_si<t_freeze) then
+        icl = ice_air_icl_si(a_si,t_si,p_si)
+        if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
+            liq_ice_air_g_cp_si=ice_air_g_cp_si(a_si, t_si, p_si)
+        endif
+    elseif(t_si>=t_freeze) then
+        icl = liq_air_icl_si(a_si,t_si,p_si)
+        if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
+            liq_ice_air_g_cp_si=liq_air_g_cp_si(a_si, t_si, p_si)
+        endif
+    !else
+    !    !at freezing point
+    !    !cp is not provided at freezing.
+    !    liq_ice_air_g_cp_si=liq_ice_air_cp_si()
+    endif
+else
+    !Below triple point
     icl = ice_air_icl_si(a_si,t_si,p_si)
     if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
         liq_ice_air_g_cp_si=ice_air_g_cp_si(a_si, t_si, p_si)
     endif
-!elseif(t_si>t_freeze) then
-elseif(t_si>=t_freeze) then
-    icl = liq_air_icl_si(a_si,t_si,p_si)
-    if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
-        liq_ice_air_g_cp_si=liq_air_g_cp_si(a_si, t_si, p_si)
-    endif
-!else
-    !at freezing point
-    !cp is not provided at freezing.
-    !if(set_liq_ice_air_eq_at_wa_wl_wi(a_si,wt*(1d0-a_si),(1d0-wt)*(1d0-a_si)) == errorreturn) return
-    !liq_ice_air_g_cp_si=liq_ice_air_cp_si()
 endif
 
 if(liq_ice_air_g_cp_si==errorreturn) then
@@ -352,34 +383,42 @@ if(a_si < 0d0 .or. a_si > 1d0) return
 if(t_si < 0d0) return
 if(p_si < 0d0) return
 
-if(set_liq_ice_air_eq_at_p(p_si) == errorreturn) return
-t_freeze=liq_ice_air_temperature_si()
-if(t_freeze==errorreturn) return
+if(set_liq_ice_air_eq_at_p(p_si) == errorreturn) then
+    !Above or at triple point
+    t_freeze=liq_ice_air_temperature_si()
+    if(t_freeze==errorreturn) return
 
-if(t_si<t_freeze) then
+    if(t_si<t_freeze) then
+        icl = ice_air_icl_si(a_si,t_si,p_si)
+        if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
+            liq_ice_air_g_rh_wmo_si=ice_air_rh_wmo_from_a_si(a_si, t_si, p_si)
+        else
+            liq_ice_air_g_rh_wmo_si=1d0
+        endif
+    !elseif(t_si>t_freeze) then
+    elseif(t_si>=t_freeze) then
+        icl = liq_air_icl_si(a_si,t_si,p_si)
+        if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
+            liq_ice_air_g_rh_wmo_si=liq_air_rh_wmo_from_a_si(a_si, t_si, p_si)
+        else
+            liq_ice_air_g_rh_wmo_si=1d0
+        endif
+    !else
+        !at freezing point
+        !rh_wmo is not provided at freezing.
+        !liq_ice_air_g_rh_wmo_si=liq_ice_air_rh_wmo_si()
+    endif
+else
+    !Below triple point
     icl = ice_air_icl_si(a_si,t_si,p_si)
     if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
         liq_ice_air_g_rh_wmo_si=ice_air_rh_wmo_from_a_si(a_si, t_si, p_si)
     else
         liq_ice_air_g_rh_wmo_si=1d0
     endif
-!elseif(t_si>t_freeze) then
-elseif(t_si>=t_freeze) then
-    icl = liq_air_icl_si(a_si,t_si,p_si)
-    if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
-        liq_ice_air_g_rh_wmo_si=liq_air_rh_wmo_from_a_si(a_si, t_si, p_si)
-    else
-        liq_ice_air_g_rh_wmo_si=1d0
-    endif
-!else
-    !at freezing point
-    !rh_wmo is not provided at freezing.
-    !if(set_liq_ice_air_eq_at_wa_wl_wi(a_si,wt*(1d0-a_si),(1d0-wt)*(1d0-a_si)) == errorreturn) return
-    !liq_ice_air_g_rh_wmo_si=liq_ice_air_rh_wmo_si()
 endif
 
 end function
-
 
 
 end module liq_ice_air_5b
