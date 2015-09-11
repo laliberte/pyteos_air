@@ -357,19 +357,26 @@ if(wa_si == 1d0) then
     t_si = air_temperature_si(wa_si, eta_si, p_si)
 
     !To find condensate, Find freezing temperature:
-    if(set_liq_ice_air_eq_at_p(p_si) == errorreturn) return
-    t_freeze=liq_ice_air_temperature_si()
-    if(t_freeze==errorreturn) return
-    if(t_si<t_freeze) then
-        !Freezing
+    if(set_liq_ice_air_eq_at_p(p_si) /= errorreturn) then
+        !Above or at triple point
+        t_freeze=liq_ice_air_temperature_si()
+        if(t_freeze==errorreturn) return
+        if(t_si<t_freeze) then
+            !Freezing
+            a = ice_air_massfraction_air_si(t_si, p_si) 
+            gv = air_g_si(0,0,0,wa_si, t_si, p_si)-wa_si*air_g_si(1,0,0,wa_si, t_si, p_si)
+            liq_ice_air_h_gc_gv_si = (ice_g_si(0,0, t_si, p_si) - gv)*(1.0/a-1.0)
+        else
+            !Not freezing
+            a = liq_air_massfraction_air_si(t_si, p_si) 
+            gv = air_g_si(0,0,0,wa_si, t_si, p_si)-wa_si*air_g_si(1,0,0,wa_si, t_si, p_si)
+            liq_ice_air_h_gc_gv_si = (liq_g_si(0,0, t_si, p_si) - gv)*(1.0/a-1.0)
+        endif
+    else
+        !Below triple point: pure Ice
         a = ice_air_massfraction_air_si(t_si, p_si) 
         gv = air_g_si(0,0,0,wa_si, t_si, p_si)-wa_si*air_g_si(1,0,0,wa_si, t_si, p_si)
         liq_ice_air_h_gc_gv_si = (ice_g_si(0,0, t_si, p_si) - gv)*(1.0/a-1.0)
-    else
-        !Not freezing
-        a = liq_air_massfraction_air_si(t_si, p_si) 
-        gv = air_g_si(0,0,0,wa_si, t_si, p_si)-wa_si*air_g_si(1,0,0,wa_si, t_si, p_si)
-        liq_ice_air_h_gc_gv_si = (liq_g_si(0,0, t_si, p_si) - gv)*(1.0/a-1.0)
     endif
 else
     !Try equilibrium without condensate:
@@ -377,29 +384,41 @@ else
     !Check if no condensation makes sense:
     if(t_si/=errorreturn) then
 
-        if(set_liq_ice_air_eq_at_p(p_si) == errorreturn) return
-        t_freeze=liq_ice_air_temperature_si()
-        !If the freezing temperature returns an error this function will return an error:
-        if(t_freeze==errorreturn) return
+        if(set_liq_ice_air_eq_at_p(p_si) /= errorreturn) then
+            !Aboce triple point
+            t_freeze=liq_ice_air_temperature_si()
+            !If the freezing temperature returns an error this function will return an error:
+            if(t_freeze==errorreturn) return
 
-        if(t_si<t_freeze) then
-            !Freezing conditions, use ice_air:
+            if(t_si<t_freeze) then
+                !Freezing conditions, use ice_air:
+                icl = ice_air_icl_si(wa_si,t_si,p_si)
+                if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
+                    !Air is below the isentropic condensation level -> no condensation
+                    a = ice_air_massfraction_air_si(t_si, p_si) 
+                    gv = air_g_si(0,0,0,wa_si, t_si, p_si)-wa_si*air_g_si(1,0,0,wa_si, t_si, p_si)
+                    liq_ice_air_h_gc_gv_si = (ice_g_si(0,0, t_si, p_si) - gv)
+                    return
+                endif
+            else
+                !Non-Freezing conditions, use liq_air:
+                icl = liq_air_icl_si(wa_si,t_si,p_si)
+                if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
+                    !Air is below the isentropic condensation level -> no condensation
+                    a = liq_air_massfraction_air_si(t_si, p_si) 
+                    gv = air_g_si(0,0,0,wa_si, t_si, p_si)-wa_si*air_g_si(1,0,0,wa_si, t_si, p_si)
+                    liq_ice_air_h_gc_gv_si = (liq_g_si(0,0, t_si, p_si) - gv)
+                    return
+                endif
+            endif
+        else
+            !Below triple point:
             icl = ice_air_icl_si(wa_si,t_si,p_si)
             if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
                 !Air is below the isentropic condensation level -> no condensation
                 a = ice_air_massfraction_air_si(t_si, p_si) 
                 gv = air_g_si(0,0,0,wa_si, t_si, p_si)-wa_si*air_g_si(1,0,0,wa_si, t_si, p_si)
                 liq_ice_air_h_gc_gv_si = (ice_g_si(0,0, t_si, p_si) - gv)
-                return
-            endif
-        else
-            !Non-Freezing conditions, use liq_air:
-            icl = liq_air_icl_si(wa_si,t_si,p_si)
-            if(icl==errorreturn.or.(icl/=errorreturn.and.icl<p_si)) then
-                !Air is below the isentropic condensation level -> no condensation
-                a = liq_air_massfraction_air_si(t_si, p_si) 
-                gv = air_g_si(0,0,0,wa_si, t_si, p_si)-wa_si*air_g_si(1,0,0,wa_si, t_si, p_si)
-                liq_ice_air_h_gc_gv_si = (liq_g_si(0,0, t_si, p_si) - gv)
                 return
             endif
         endif
@@ -426,12 +445,6 @@ else
         a = liq_ice_air_airfraction_si()
         gv = air_g_si(0,0,0,a, t_si, p_si)-a*air_g_si(1,0,0,a, t_si, p_si)
         liq_ice_air_h_gc_gv_si = (wt*liq_g_si(0,0, t_si, p_si)+(1.0-wt)*ice_g_si(0,0, t_si, p_si) - gv)*(1.0/a-1.0)
-    endif
-    if(liq_ice_air_h_gc_gv_si==errorreturn) then
-        !If it fails, it is likely that we are outside the region of validity of moist air.
-        !For lack of better alternative, use dry air values:
-        !No water:
-        liq_ice_air_h_gc_gv_si=0.0
     endif
 endif
 end function

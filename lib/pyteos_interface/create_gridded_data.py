@@ -42,8 +42,8 @@ def create_gridded_data(realm,input_type,func,thermo_axes,num_procs=1):
                 A = np.where(rh_wmo>=1.0,A+1e-10,A)
             else:
                 A = np.reshape(thermo_axes['A'],[len(thermo_axes['A']),1,1])
-            #When temperatures are below 193.0 (minimum of TEOS-10), make it dry:
-            A = np.where(T<193.0,1.0,A)
+            #If temperature is less than 193.0, make it dry:
+            A=np.where(T<193.0,1.0,A)
 
     elif input_type in ['h']:
         eta =np.reshape(thermo_axes['eta'],[1,len(thermo_axes['eta']),1])
