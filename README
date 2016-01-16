@@ -31,6 +31,8 @@ NOTE: This package requires a Fortran 90 compiler. Sometimes numpy.disutils will
 
 VERSION HISTORY:
 
+0.9 : Improve netCDF interface
+
 0.8 : Fixed a warning signal with missing values
 
 0.7 : The interpolation is now much faster
