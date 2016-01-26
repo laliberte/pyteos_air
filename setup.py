@@ -108,16 +108,11 @@ setup(name=package_name,
             "Topic :: Scientific/Engineering :: Mathematics"
         ],
         long_description=read('README'),
-        install_requires = ['numpy>=1.6'],
+        install_requires = ['numpy>=1.6','scipy'],
         zip_safe=False,
         ext_package = 'pyteos_air.teos_air',
         ext_modules = [Extension('teos_air',
                                   teos_files
                                 ),
                       ],
-        entry_points = {
-                  'console_scripts': [
-                           'pyteos_nc = '+package_name+'.pyteos_interface.netcdf_interface:main',
-                                     ],
-                       }
     )
