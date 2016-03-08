@@ -48,7 +48,11 @@ def create_gridded_data(realm,input_type,func,thermo_axes,num_procs=1):
     elif input_type in ['h']:
         eta =np.reshape(thermo_axes['eta'],[1,len(thermo_axes['eta']),1])
         p =np.reshape(thermo_axes['p'],[1,1,len(thermo_axes['p'])])
-        A = np.reshape(thermo_axes['A'],[len(thermo_axes['A']),1,1])
+        if 'rh_wmo' in thermo_axes.keys():
+            rh_wmo = np.reshape(thermo_axes['rh_wmo'],[len(thermo_axes['rh_wmo']),1,1])
+            A = mp_vec_masked(np.vectorize(liq_ice_air_A_h_fixed_rh_wmo),(rh_wmo,eta,p),pool=pool)
+        else:
+            A = np.reshape(thermo_axes['A'],[len(thermo_axes['A']),1,1])
         
     if input_type=='g_ref':
         result=mp_vec_masked(getattr(getattr(realm,input_type),func),(A,T,p,thermo_axes['pref']),pool=pool)
@@ -94,3 +98,22 @@ def pickle_function(realm,input_type,func,thermo_axes,file_to_pickle,num_procs=1
     file_id=open(file_to_pickle,'w')
     pickle.dump(func_instance,file_id)
     file_id.close
+    return
+
+def liq_ice_air_A_h_fixed_rh_wmo(rh_wmo,eta,p):
+    import pyteos_air.liq_ice_air as liq_ice_air
+    import scipy.optimize as optimize
+    A_rh_function=(lambda massfraction_air: massfraction_air / (massfraction_air + rh_wmo * (1.0 - massfraction_air)))
+    A_function=(lambda A: A - A_rh_function(np.squeeze(liq_ice_air.sat.massfraction_air(liq_ice_air.h.temperature(A,eta,p),p))))
+    if np.sign(A_function(0.95)*A_function(1.0))<0.0:
+        A=optimize.brenth(A_function,0.95,1.0)
+    else:
+        try:
+            A_min=optimize.minimize_scalar(A_function,bracket=[0.95,1.0]).x
+            if np.sign(A_function(A_min)*A_function(1.0))<0.0:
+                A=optimize.brenth(A_function,A_min,1.0)
+            else:
+                A=1.0
+        except RuntimeError:
+            A=0.95 
+    return A
