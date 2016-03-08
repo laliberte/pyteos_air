@@ -31,6 +31,8 @@ NOTE: This package requires a Fortran 90 compiler. Sometimes numpy.disutils will
 
 VERSION HISTORY:
 
+0.92 : Finished moving netCDF interface to package pyteos_nc
+
 0.91 : Moved netCDF interface to package pyteos_nc
 
 0.9 : Improve netCDF interface
