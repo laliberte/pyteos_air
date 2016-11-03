@@ -1,3 +1,2 @@
 from pyteos_interface import attribute_to_function
-from create_interpolants import Interpolated_data
 from create_gridded_data import create_gridded_data
