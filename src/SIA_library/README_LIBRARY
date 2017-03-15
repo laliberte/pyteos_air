@@ -1,0 +1,54 @@
+This directory contains the basic routines in the SIA (Sea-Ice-Air) library, corresponding 
+to the discussions found in the following papers.
+
+!FEISTEL, R., WRIGHT, D.G., JACKETT, D.R., MIYAGAWA, K., REISSMANN, J.H.,
+!WAGNER, W., OVERHOFF, U., GUDER, C., TCHIJOV, V., FEISTEL, A., MARION, G.M.:
+!NUMERICAL IMPLEMENTATION AND OCEANOGRAPHIC APPLICATION OF THE THERMODYNAMIC
+!POTENTIALS OF WATER, VAPOUR, ICE, SEAWATER AND AIR. PART I: BACKGROUND AND EQUATIONS. 
+!OCEAN SCIENCES, 2009, IN PREPARATION.
+
+!WRIGHT, D.G., FEISTEL, R., JACKETT, D.R., MIYAGAWA, K., REISSMANN, J.H., 
+!WAGNER, W., OVERHOFF, U., GUDER, C., TCHIJOV, V., FEISTEL, A., MARION, G.M.:
+!NUMERICAL IMPLEMENTATION AND OCEANOGRAPHIC APPLICATION OF THE THERMODYNAMIC
+!POTENTIALS OF WATER, VAPOUR, ICE, SEAWATER AND AIR. PART II: THE LIBRARY ROUTINES, 
+!OCEAN SCIENCES., 2009, IN PREPARATION.
+
+!FEISTEL, R., KRETZSCHMAR, H.-J., SPAN, R., HAGEN, E., !WRIGHT, D.G., HERRMANN, S.:
+!THERMODYNAMIC PROPERTIES OF SEA AIR.
+!OCEAN SCIENCES, 2009, IN PREPARATION.
+
+Brief information is included as comment statements in the individual library routines; 
+the papers listed above give more detailed information.  In particular, Table 3 and the 
+Supplement of Feistel et al. (2009) provides detailed theoretical background information on 
+the routines.  Wright et al. (2009) are included to assist users to use the routines in this 
+library.
+
+Normally, the elements of the main library modules will be compiled to create module (.mod) and object (.o)
+files that can then be linked to the object files corresponding to user routines.  Thus 
+compiling only the main library will not create any executable files.  
+
+Compiling and linking:
+four different options for compiling and linking are included with the library.
+
+1. Executing the script autogen.sh in the TEOS10-X.Y.Z directory will compile all of the F90 files in this 
+directory and populate it with object files, module files, and a library file 
+It also produces a Makefile for the routines in this directory.  Using autogen is the simplest 
+way to compile the files in this directory if it is supported on your system; if not it might be worth 
+adding it.  However, if you don't have the GNU autogen/autoconf/automake tools, you may want to try one 
+of the following.
+
+2.  Executing TEOSf90_all_lib.sh will create and execute a simple Makefile for All.F90 which will result 
+in all of the F90 files being compiled and the directory will be populated with object and module files.
+A makefile for the main library routines will appear as Makefile_All.
+This option uses the perl script stored in fmkmf.sh (Fortran MaKe MakeFile). If you use this option you will 
+want to use the TEOSf90.sh option to compile routines in the EXAMPLES directory. See the README file in that 
+directory for more information.  If neither the autogen nor the TEOSf90_all_lib.sh approaches work for you, 
+then you can still go into the SIMPLE_COMPILERS directory and use one of the more basic options included there.
+
+3. If the file makefile in the SIMPLE_COMPILERS directory is copied to this directory, then you should 
+be able to compile all routines simply by typing make.  
+
+4. If you copy compile_LIBRARY.sh (which is even more basic) to this directory and enter 
+"./compile_LIBRARY.sh <return>" it should also create all of the module and object files.
+It will not create a makefile though.
+

@@ -1,0 +1,39 @@
+# Based on http://conda.pydata.org/docs/travis.html
+language: python
+sudo: false # use container based build
+notifications:
+  email: false
+python:
+    - 2.7
+    - 3.3
+    - 3.4
+    - 3.5
+    - 3.6
+env:
+    - CHANNEL=defaults
+    - CHANNEL=forge
+
+matrix:
+  fast_finish: true
+  allow_failures:
+    - env: CHANNEL=forge
+    - python: 3.3
+
+before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then wget https://repo.continuum.io/miniconda/Miniconda2-latest-MacOSX-x86_64.sh -O miniconda.sh; fi
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no --set show_channel_urls true
+  - conda update -q conda
+  - conda info -a
+
+install:
+  - conda env create --file ci/requirements-py${TRAVIS_PYTHON_VERSION}_${CHANNEL}.yml
+  - source activate cdb${TRAVIS_PYTHON_VERSION}_${CHANNEL}_test_env
+  - pip install -e .
+
+script:
+  #- flake8
+  - py.test --cov=pyteos_air

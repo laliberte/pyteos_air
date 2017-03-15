@@ -1,0 +1,15 @@
+*.pyc
+MANIFEST
+pyteos_air.egg-info/
+diags/
+dist/
+docs/_build/
+docs/pyteos_air.egg-info/
+build/
+htmlcov/
+temp/
+to_do
+.cache
+.coverage
+.key
+.keyinfo
