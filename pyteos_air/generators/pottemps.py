@@ -5,7 +5,7 @@ import click
 
 #Specific packages:
 from .. import liq_ice_air
-from ...pyteos_interface import create_gridded_data
+from ..pyteos_interface import create_gridded_data
 from ..create_interpolants import Interpolated_data
 
 @click.command()
