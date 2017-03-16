@@ -75,10 +75,6 @@ teos_files.extend(sources_interface)
 if not os.path.exists(sign_file):
     os.system('f2py -m teos_air --overwrite-signature -h ' + sign_file + ' ' +
               ' '.join(sources_interface))
-    #else:
-    #if sys.version_info < (3,3):
-    #    os.system('f2py3 -m teos_air --overwrite-signature -h ' + sign_file + ' ' +
-    #              ' '.join(sources_interface))
 teos_files.append(sign_file)
 
 package_name = 'pyteos_air'
@@ -86,7 +82,7 @@ packages = [package_name + '.' + name for name in find_packages(exclude=['test']
 packages.append(package_name)
 
 setup(name=package_name,
-      version="0.9.6",
+      version="1.0",
       packages=find_packages(exclude=['test']),
       # metadata for upload to PyPI
       author=("F. Laliberte, R. Feistel, D. G. Wright, D. R. Jackett, K. Miyagawa, "
