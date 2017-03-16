@@ -29,7 +29,10 @@ NOTE: This package requires a Fortran 90 compiler. Sometimes numpy.disutils will
         python setup.py build --fcompiler=gnu95
       if 'gnu95' was in the list.
 
-VERSION HISTORY:
+VERSION HISTORY
+---------------
+
+0.95 : Some minimal testing and code publication improvements
 
 0.92 : Finished moving netCDF interface to package pyteos_nc
 
