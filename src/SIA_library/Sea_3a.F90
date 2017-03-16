@@ -167,7 +167,7 @@ function sea_chempot_rel_si(sa_si, t_si, p_si)
 !==========================================================================
 
 !OUTPUT:
-!µ(S,T,P) = (DG/DS)_T_P  RELATIVE CHEM. POTENTIAL OF SEAWATER IN J/KG
+!mu(S,T,P) = (DG/DS)_T_P  RELATIVE CHEM. POTENTIAL OF SEAWATER IN J/KG
 !SA_SI     ABSOLUTE SALINITY IN KG/KG
 !T_SI      ABSOLUTE TEMPERATURE IN K
 !P_SI      ABSOLUTE PRESSURE IN PA

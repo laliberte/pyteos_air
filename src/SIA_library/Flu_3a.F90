@@ -1673,7 +1673,7 @@ subroutine set_it_ctrl_density(key, value)
 
 !INIT_LIQ_DENS'        0           USE DEFAULT LIQUID DENSITY (IF97) TO START IN THE SUBCRITICAL REGION (T <= 623.16 K OR P <=16.529 MPA)
 !                                  USE DEFAULT CUBIC EOS TO START IN THE CRITICAL REGION (623.16 K < T < 650 K AND 16.529 MPA < P < 35 MPA)
-!                                  USE DEFAULT 1000 KG/M³ TO START IN THE REMAINING SUPERCRITICAL REGION
+!                                  USE DEFAULT 1000 KG/M^3 TO START IN THE REMAINING SUPERCRITICAL REGION
 !INIT_LIQ_DENS'       -1           USE IF97 LIQUID DENSITY TO START
 !INIT_LIQ_DENS'       -2           USE EOS80 LIQUID DENSITY TO START
 !INIT_LIQ_DENS'       -3           USE F03 LIQUID DENSITY TO START
@@ -1681,7 +1681,7 @@ subroutine set_it_ctrl_density(key, value)
 
 !INIT_VAP_DENS'        0           USE DEFAULT VAPOUR DENSITY (IF97) TO START IN THE SUBCRITICAL REGION (T <= 623.16 K OR P <=16.529 MPA)
 !                                  USE DEFAULT CUBIC EOS TO START IN THE CRITICAL REGION (623.16 K < T < 650 K AND 16.529 MPA < P < 35 MPA)
-!                                  USE DEFAULT 1000 KG/M³ TO START IN THE REMAINING SUPERCRITICAL REGION
+!                                  USE DEFAULT 1000 KG/M^3 TO START IN THE REMAINING SUPERCRITICAL REGION
 !INIT_VAP_DENS'       -1           USE IF97 VAPOUR DENSITY TO START
 !INIT_VAP_DENS'       -2           USE IDEAL-GAS VAPOUR DENSITY TO START
 !INIT_VAP_DENS'        D > 0       USE VALUE D AS VAPOUR DENSITY TO START
@@ -1854,7 +1854,7 @@ end function
 subroutine init_f03
 !==========================================================================
 
-! G(T,P) = SUM GC03(J,K) * (T/40°C)^J * (P/100 MPA)^K
+! G(T,P) = SUM GC03(J,K) * (T/40 C)^J * (P/100 MPA)^K
 !          J,K
 
 implicit none

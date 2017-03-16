@@ -492,7 +492,7 @@ end function
 function t_c_from_t_k(t_k)
 !==========================================================================
 
-!THIS FUNCTION COMPUTES TEMPERATURE IN °C FROM TEMPERATURE IN K (ITS-90, IPTS-68, IPTS-48)
+!THIS FUNCTION COMPUTES TEMPERATURE IN C FROM TEMPERATURE IN K (ITS-90, IPTS-68, IPTS-48)
 
 implicit none
 real*8 t_c_from_t_k, t_k

@@ -67,7 +67,7 @@ public :: gsw_alpha_ct, gsw_alpha_pt0, &
 !
 ! for the pure water component and by 
 !
-!	Feistel, R., 2008: A Gibbs function for seawater thermodynamics for -6 to 80°C  
+!	Feistel, R., 2008: A Gibbs function for seawater thermodynamics for -6 to 80 C  
 !                      and salinity up to 120 G/KG, Deep-Sea Res. I, 55, 1639-1671, and  
 !     
 !  	IAPWS 2008: Release on the IAPWS Formulation 2008 for the Thermodynamic Properties of Seawater, 

@@ -2508,7 +2508,7 @@ subroutine set_it_ctrl_sea_vap(key, value)
 !'INIT_BRINE_SA'        S > 0       USE VALUE S AS BRINE SALINITY TO START
 
 !'INIT_TEMP    '        0           USE DEFAULT TEMPERATURE TO START ( = AUX_BOILINGTEMPERATURE_SI(S, P))
-!'INIT_TEMP    '       -1           USE 0°C TEMPERATURE TO START
+!'INIT_TEMP    '       -1           USE 0 C TEMPERATURE TO START
 !'INIT_TEMP    '        T > 0       USE VALUE T AS TEMPERATURE TO START
 
 !'TOL_BRINE_SA '        0           USE DEFAULT EXIT TOLERANCE FOR BRINE SALINITY (0.1 PPM)
