@@ -9,7 +9,3 @@ dependencies:
   - pytest
   - numpy
   - scipy
-  - h5py
-  - hdf5
-  - libnetcdf
-  - netcdf4
