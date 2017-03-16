@@ -1,4 +1,4 @@
-name: cdb3.6_forge_test_env
+name: pyteos3.6_forge_test_env
 channels:
   - conda-forge
 dependencies:

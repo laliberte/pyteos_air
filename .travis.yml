@@ -36,7 +36,7 @@ before_install:
 
 install:
   - conda env create --file ci/requirements-py${TRAVIS_PYTHON_VERSION}_${CHANNEL}.yml
-  - source activate cdb${TRAVIS_PYTHON_VERSION}_${CHANNEL}_test_env
+  - source activate pyteos${TRAVIS_PYTHON_VERSION}_${CHANNEL}_test_env
   - pip install -e .[testing]
 
 script:

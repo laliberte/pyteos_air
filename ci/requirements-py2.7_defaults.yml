@@ -1,4 +1,4 @@
-name: cdb2.7_defaults_test_env
+name: pyteos2.7_defaults_test_env
 channels:
   - defaults
   - conda-forge

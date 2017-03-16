@@ -1,4 +1,4 @@
-name: cdb2.7_forge_test_env
+name: pyteos2.7_forge_test_env
 channels:
   - conda-forge
 dependencies:
