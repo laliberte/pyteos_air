@@ -26,9 +26,11 @@ NOTE:
     This package requires a Fortran 90 compiler. Sometimes numpy.disutils will not find
     the installed Fortran compiler and will return an error. It this happens, download the
     source code and run::
+    
         $ f2py -c --help-fcompiler      
 
-    to find the list of available compilers and then compile::
+    To find the list of available compilers and then compile::
+
         $ python setup.py build --fcompiler=gnu95
 
     if 'gnu95' was in the list.
