@@ -22,13 +22,15 @@ The current beta version offers a very basic interface to the library. Future ve
 will include a better interface and a more extensive physical description of the different
 routines available.
 
-.. NOTE::
+NOTE:
     This package requires a Fortran 90 compiler. Sometimes numpy.disutils will not find
     the installed Fortran compiler and will return an error. It this happens, download the
     source code and run::
         $ f2py -c --help-fcompiler      
+
     to find the list of available compilers and then compile::
         $ python setup.py build --fcompiler=gnu95
+
     if 'gnu95' was in the list.
 
 VERSION HISTORY
