@@ -1,8 +1,6 @@
 # This Python file uses the following encoding: utf-8
 import os
-import six
 from setuptools import setup, find_packages
-
 from numpy.distutils.core import setup, Extension
 
 # Utility function to read the README file.
@@ -74,12 +72,11 @@ teos_files.extend(sources_interface)
 
 # generate signature file if it does not exist:
 if not os.path.exists(sign_file):
-    print(' '.join(sources_interface))
-    if six.PY3:
-        os.system('f2py3 -m teos_air --overwrite-signature -h ' + sign_file + ' ' +
+    if sys.version_info <= (2,7):
+        os.system('f2py -m teos_air --overwrite-signature -h ' + sign_file + ' ' +
                   ' '.join(sources_interface))
     else:
-        os.system('f2py -m teos_air --overwrite-signature -h ' + sign_file + ' ' +
+        os.system('f2py3 -m teos_air --overwrite-signature -h ' + sign_file + ' ' +
                   ' '.join(sources_interface))
 teos_files.append(sign_file)
 
@@ -88,7 +85,7 @@ packages = [package_name + '.' + name for name in find_packages(exclude=['test']
 packages.append(package_name)
 
 setup(name=package_name,
-      version="0.9.5",
+      version="0.9.6",
       packages=find_packages(exclude=['test']),
       # metadata for upload to PyPI
       author=("F. Laliberte, R. Feistel, D. G. Wright, D. R. Jackett, K. Miyagawa, "

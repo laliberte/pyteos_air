@@ -38,11 +38,13 @@ NOTE:
 VERSION HISTORY
 ^^^^^^^^^^^^^^^
 
-0.95 : Some minimal testing and code publication improvements
+0.9.6 : Important bug fix on PYPI
 
-0.92 : Finished moving netCDF interface to package pyteos_nc
+0.9.5 : Some minimal testing and code publication improvements
 
-0.91 : Moved netCDF interface to package pyteos_nc
+0.9.2 : Finished moving netCDF interface to package pyteos_nc
+
+0.9.1 : Moved netCDF interface to package pyteos_nc
 
 0.9 : Improve netCDF interface
 
