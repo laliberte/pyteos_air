@@ -1,2 +1,2 @@
-from pyteos_interface import attribute_to_function
-from create_gridded_data import create_gridded_data
+from .pyteos_interface import attribute_to_function
+from .create_gridded_data import create_gridded_data

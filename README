@@ -26,8 +26,8 @@ NOTE: This package requires a Fortran 90 compiler. Sometimes numpy.disutils will
       source code and run:
         f2py -c --help-fcompiler      
       to find the list of available compilers and then compile:
-        python setup.py build --fcompiler=g95
-      if 'g95' was in the list.
+        python setup.py build --fcompiler=gnu95
+      if 'gnu95' was in the list.
 
 VERSION HISTORY:
 
