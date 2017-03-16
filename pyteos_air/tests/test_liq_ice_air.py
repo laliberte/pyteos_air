@@ -24,3 +24,14 @@ def test_g_ref_pottemp():
     assert liq_ice_air.g_ref.pottemp(0.98, 300.0, 5e4, 1e5) == 365.2154567609769
     # Low pressure, must be dry:
     assert liq_ice_air.g_ref.pottemp(1.0, 300.0, 5e3, 1e5) == 692.815889987961
+
+
+def test_g_ref_pottempequiapprox():
+    # Below freezing:
+    assert liq_ice_air.g_ref.pottempequiapprox(0.98, 270.0, 5e4, 1e5) == 395.17024568743096
+    # Above freezing:
+    assert liq_ice_air.g_ref.pottempequiapprox(0.98, 300.0, 5e4, 1e5) == 440.05599314639227
+    # Low pressure, must be dry:
+    assert liq_ice_air.g_ref.pottempequiapprox(1.0, 300.0, 5e3, 1e5) == 710.3932123977726
+    # Above freezing at surface:
+    assert liq_ice_air.g_ref.pottempequiapprox(0.98, 300.0, 1e5, 1e5) == 359.86582890653585

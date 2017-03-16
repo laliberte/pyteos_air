@@ -1,8 +1,9 @@
 import numpy as np
+import inspect
 
 def function_parameters(func):
-    func_desc=getattr(func,'func_doc')
-    return [ x.split(':')[1][6:] for x in func_desc.split('\n') if (len(x)>=6 and x[:6]==':param')]
+    func_desc = inspect.getdoc(func)
+    return [x.split(':')[1][6:] for x in func_desc.split('\n') if (len(x)>=6 and x[:6]==':param')]
 
 def create_gridded_data(realm,input_type,func,thermo_axes,num_procs=1):
     params_list=function_parameters(getattr(getattr(realm,input_type),func))

@@ -79,6 +79,9 @@ subroutine liq_ice_air_g_ref(in_name,in_q,in_t,in_p, in_ref, k, l, m, out_val)
                 case( 'pottempequisat' )
                     out_val(idk,idl,idm)=liq_ice_air_pottempequisat_si(in_q(idk,idl,idm),&
                     in_t(idk,idl,idm), in_p(idk,idl,idm), in_ref(idk,idl,idm))
+                case( 'pottempequiapprox' )
+                    out_val(idk,idl,idm)=liq_ice_air_pottempequiapprox_si(in_q(idk,idl,idm),&
+                    in_t(idk,idl,idm), in_p(idk,idl,idm), in_ref(idk,idl,idm))
                 case( 'pottempequi' )
                     out_val(idk,idl,idm)=liq_ice_air_pottempequi_si(in_q(idk,idl,idm),&
                     in_t(idk,idl,idm), in_p(idk,idl,idm), in_ref(idk,idl,idm))

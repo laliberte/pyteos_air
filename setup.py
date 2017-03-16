@@ -1,5 +1,6 @@
 # This Python file uses the following encoding: utf-8
 import os
+import six
 from setuptools import setup, find_packages
 
 from numpy.distutils.core import setup, Extension
@@ -74,8 +75,12 @@ teos_files.extend(sources_interface)
 # generate signature file if it does not exist:
 if not os.path.exists(sign_file):
     print(' '.join(sources_interface))
-    os.system('f2py -m teos_air --overwrite-signature -h ' + sign_file + ' ' +
-              ' '.join(sources_interface))
+    if six.PY3:
+        os.system('f2py3 -m teos_air --overwrite-signature -h ' + sign_file + ' ' +
+                  ' '.join(sources_interface))
+    else:
+        os.system('f2py -m teos_air --overwrite-signature -h ' + sign_file + ' ' +
+                  ' '.join(sources_interface))
 teos_files.append(sign_file)
 
 package_name = 'pyteos_air'

@@ -79,6 +79,7 @@ private
 character*16, private :: version = 'October 2012'
 
 public :: liq_ice_air_pottemp_si, liq_ice_air_pottempequi_si, &
+          liq_ice_air_pottempequiapprox_si, &
           liq_ice_air_pottempequisat_si, liq_ice_air_pottempequipseudo_si, &
           liq_ice_air_g_temperatureequi_si
 
@@ -170,6 +171,38 @@ else
 endif
 
 end function
+
+
+function liq_ice_air_pottempequiapprox_si(a_si, t_si, p_si, pr_si)
+!THIS FUNCTION COMPUTES THE APPROXIMATE EQUIVALENT POTENTIAL TEMPERATURE OF AIR AT FIXED PRESSURE AND FIXED DRY AIR MASS FRACTION.
+!THIS FUNCTION GIVES AN EXPRESSION THAT CORRESPONDS TO EQUATION (4.5.10) IN EMMANUEL (1994) WHEN
+!T_SI IS ABOVE FREEZING AND POTTEMP(A_SI,T_SI,P_SI,PR_SI) IS ABOVE FREEZING.
+!AT PR_SI=1E5 PA, IT IS EXACTLY EQUAL TO 273.15 * exp(liq_ice_air_g_entropy_si/1003.0) AND WOULD CORRESPOND TO THE SURFACE VALUE.
+
+!OUTPUT:
+!THETA_E(A,T,P,PR) APPROX EQUIVALENT POTENTIAL TEMPERATURE OF ICE AIR OR LIQUID AIR IN K
+
+!INPUTS:
+!A_SI      ABSOLUTE DRY-AIR MASS FRACTION IN KG/KG
+!T_SI      ABSOLUTE IN-SITU TEMPERATURE IN K
+!P_SI      ABSOLUTE IN-SITU PRESSURE IN PA
+!PR_SI     REFERENCE PRESSURE IN PA
+
+real*8 liq_ice_air_pottempequiapprox_si, a_si, t_si, p_si, pr_si
+
+liq_ice_air_pottempequiapprox_si = errorreturn
+
+if(a_si < 0d0 .or. a_si > 1d0) return
+if(t_si < 0d0) return
+if(p_si < 0d0) return
+if(pr_si < 0d0) return
+
+!COMPUTE APPROXIMATE POTTEMPEQUI AT PR_SI = 1E5:
+liq_ice_air_pottempequiapprox_si = 273.15d0*EXP(liq_ice_air_g_entropy_si(a_si, t_si, p_si)/1003.0d0) 
+!USE DRY POTTEMP TO MOVE AROUND:
+liq_ice_air_pottempequiapprox_si = liq_ice_air_pottemp_si(1d0, liq_ice_air_pottempequiapprox_si, 1d5, pr_si)
+end function
+
 
 function liq_ice_air_pottempequi_si(a_si, t_si, p_si, pr_si)
 !THIS FUNCTION COMPUTES THE EQUIVALENT POTENTIAL TEMPERATURE OF AIR AT FIXED PRESSURE AND FIXED DRY AIR MASS FRACTION.

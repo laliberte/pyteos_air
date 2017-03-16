@@ -25,6 +25,7 @@ def attfunc(function_name,desc):
 
 #Functions list:
 pottemp=                attfunc("pottemp","potential tempeature (K) at **pref**.")
+pottempequiapprox=      attfunc("pottempequiapprox","approximate equivalent potential temperature (K) at **pref**.")
 pottempequisat=         attfunc("pottempequisat","saturation equivalent potential temperature (K) at **pref**.")
 pottempequipseudo=      attfunc("pottempequipseudo","pseudo equivalent potential temperature (K) at **pref**.\n\n\
 Integrates the pseudo adiabat until the temperature falls\
