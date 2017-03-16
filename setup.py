@@ -73,7 +73,7 @@ teos_files.extend(sources_interface)
 
 # generate signature file if it does not exist:
 if not os.path.exists(sign_file):
-    if sys.version_info <= (2,7):
+    if sys.version_info < (3,3):
         os.system('f2py -m teos_air --overwrite-signature -h ' + sign_file + ' ' +
                   ' '.join(sources_interface))
     else:
