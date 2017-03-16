@@ -1,5 +1,6 @@
 # This Python file uses the following encoding: utf-8
 import os
+import sys
 from setuptools import setup, find_packages
 from numpy.distutils.core import setup, Extension
 
