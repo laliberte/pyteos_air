@@ -1,0 +1,6 @@
+The files teos_airmodule.c teos_air.pyf must be deleted
+and re-generated using:
+
+$ python setup.py build_ext
+
+if any file in the current sub directory or below are changed.

@@ -1,0 +1,66 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module teos_air ! in 
+    interface  ! in :teos_air
+        subroutine liq_ice_air_sat(in_name,in_t,in_p,k,l,m,out_val) ! in :teos_air:pyteos_air/liq_ice_air/liq_ice_air_f2py.F90
+            use liq_ice_air_5b
+            character*(*) intent(in) :: in_name
+            real(kind=8) dimension(k,l,m),intent(in) :: in_t
+            real(kind=8) dimension(k,l,m),intent(in),depend(k,l,m) :: in_p
+            integer, optional,intent(in),check(shape(in_t,0)==k),depend(in_t) :: k=shape(in_t,0)
+            integer, optional,intent(in),check(shape(in_t,1)==l),depend(in_t) :: l=shape(in_t,1)
+            integer, optional,intent(in),check(shape(in_t,2)==m),depend(in_t) :: m=shape(in_t,2)
+            real(kind=8) dimension(k,l,m),intent(out),depend(k,l,m) :: out_val
+        end subroutine liq_ice_air_sat
+        subroutine liq_ice_air_g_ref(in_name,in_q,in_t,in_p,in_ref,k,l,m,out_val) ! in :teos_air:pyteos_air/liq_ice_air/liq_ice_air_f2py.F90
+            use liq_ice_air_5d
+            character*(*) intent(in) :: in_name
+            real(kind=8) dimension(k,l,m),intent(in) :: in_q
+            real(kind=8) dimension(k,l,m),intent(in),depend(k,l,m) :: in_t
+            real(kind=8) dimension(k,l,m),intent(in),depend(k,l,m) :: in_p
+            real(kind=8) dimension(k,l,m),intent(in),depend(k,l,m) :: in_ref
+            integer, optional,intent(in),check(shape(in_q,0)==k),depend(in_q) :: k=shape(in_q,0)
+            integer, optional,intent(in),check(shape(in_q,1)==l),depend(in_q) :: l=shape(in_q,1)
+            integer, optional,intent(in),check(shape(in_q,2)==m),depend(in_q) :: m=shape(in_q,2)
+            real(kind=8) dimension(k,l,m),intent(out),depend(k,l,m) :: out_val
+        end subroutine liq_ice_air_g_ref
+        subroutine liq_ice_air_g(in_name,in_q,in_t,in_p,k,l,m,out_val) ! in :teos_air:pyteos_air/liq_ice_air/liq_ice_air_f2py.F90
+            use liq_ice_air_5d
+            use liq_ice_air_5b
+            use liq_ice_air_5c
+            character*(*) intent(in) :: in_name
+            real(kind=8) dimension(k,l,m),intent(in) :: in_q
+            real(kind=8) dimension(k,l,m),intent(in),depend(k,l,m) :: in_t
+            real(kind=8) dimension(k,l,m),intent(in),depend(k,l,m) :: in_p
+            integer, optional,intent(in),check(shape(in_q,0)==k),depend(in_q) :: k=shape(in_q,0)
+            integer, optional,intent(in),check(shape(in_q,1)==l),depend(in_q) :: l=shape(in_q,1)
+            integer, optional,intent(in),check(shape(in_q,2)==m),depend(in_q) :: m=shape(in_q,2)
+            real(kind=8) dimension(k,l,m),intent(out),depend(k,l,m) :: out_val
+        end subroutine liq_ice_air_g
+        subroutine liq_ice_air_h(in_name,in_q,in_s,in_p,k,l,m,out_val) ! in :teos_air:pyteos_air/liq_ice_air/liq_ice_air_f2py.F90
+            use liq_ice_air_5a
+            character*(*) intent(in) :: in_name
+            real(kind=8) dimension(k,l,m),intent(in) :: in_q
+            real(kind=8) dimension(k,l,m),intent(in),depend(k,l,m) :: in_s
+            real(kind=8) dimension(k,l,m),intent(in),depend(k,l,m) :: in_p
+            integer, optional,intent(in),check(shape(in_q,0)==k),depend(in_q) :: k=shape(in_q,0)
+            integer, optional,intent(in),check(shape(in_q,1)==l),depend(in_q) :: l=shape(in_q,1)
+            integer, optional,intent(in),check(shape(in_q,2)==m),depend(in_q) :: m=shape(in_q,2)
+            real(kind=8) dimension(k,l,m),intent(out),depend(k,l,m) :: out_val
+        end subroutine liq_ice_air_h
+        subroutine liq_ice_air_il(in_name,in_q,in_s,k,l,m,out_val) ! in :teos_air:pyteos_air/liq_ice_air/liq_ice_air_f2py.F90
+            use liq_ice_air_4
+            character*(*) intent(in) :: in_name
+            real(kind=8) dimension(k,l,m),intent(in) :: in_q
+            real(kind=8) dimension(k,l,m),intent(in),depend(k,l,m) :: in_s
+            integer, optional,intent(in),check(shape(in_q,0)==k),depend(in_q) :: k=shape(in_q,0)
+            integer, optional,intent(in),check(shape(in_q,1)==l),depend(in_q) :: l=shape(in_q,1)
+            integer, optional,intent(in),check(shape(in_q,2)==m),depend(in_q) :: m=shape(in_q,2)
+            real(kind=8) dimension(k,l,m),intent(out),depend(k,l,m) :: out_val
+        end subroutine liq_ice_air_il
+    end interface 
+end python module teos_air
+
+! This file was auto-generated with f2py (version:2).
+! See http://cens.ioc.ee/projects/f2py2e/
