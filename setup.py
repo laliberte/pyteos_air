@@ -82,7 +82,7 @@ packages = [package_name + '.' + name for name in find_packages(exclude=['test']
 packages.append(package_name)
 
 setup(name=package_name,
-      version="1.0.1",
+      version="1.0.2",
       packages=find_packages(exclude=['test']),
       # metadata for upload to PyPI
       author=("F. Laliberte, R. Feistel, D. G. Wright, D. R. Jackett, K. Miyagawa, "
