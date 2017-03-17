@@ -37,7 +37,6 @@ before_install:
 install:
   - conda env create --file ci/requirements-py${TRAVIS_PYTHON_VERSION}_${CHANNEL}.yml
   - source activate pyteos${TRAVIS_PYTHON_VERSION}_${CHANNEL}_test_env
-  - ls /home/travis/miniconda/envs/pyteos${TRAVIS_PYTHON_VERSION}_${CHANNEL}_test_env/bin/f2py*
   - pip install -e .[testing]
 
 script:
