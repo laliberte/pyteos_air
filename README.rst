@@ -38,6 +38,8 @@ NOTE:
 VERSION HISTORY
 ^^^^^^^^^^^^^^^
 
+1.0.1 : Package comes with pre-computed f2py files for easier portability.
+
 1.0 : Important bug fix on PYPI
 
 0.9.5 : Some minimal testing and code publication improvements
