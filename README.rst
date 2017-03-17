@@ -38,7 +38,7 @@ NOTE:
 VERSION HISTORY
 ^^^^^^^^^^^^^^^
 
-1.0.2 : Must compute f2py in setup.py.
+1.0.3 : Must compute f2py in ``setup.py`` but now using a more portable method.
 
 1.0.1 : Package comes with pre-computed f2py files for easier portability.
 
@@ -46,9 +46,9 @@ VERSION HISTORY
 
 0.9.5 : Some minimal testing and code publication improvements
 
-0.9.2 : Finished moving netCDF interface to package pyteos_nc
+0.9.2 : Finished moving netCDF interface to package ``pyteos_nc``
 
-0.9.1 : Moved netCDF interface to package pyteos_nc
+0.9.1 : Moved netCDF interface to package ``pyteos_nc``
 
 0.9 : Improve netCDF interface
 

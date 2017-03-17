@@ -73,7 +73,7 @@ teos_files.extend(sources_interface)
 
 # generate signature file if it does not exist:
 if not os.path.exists(sign_file):
-    os.system('f2py -m teos_air --overwrite-signature -h ' + sign_file + ' ' +
+    os.system('python -m numpy.f2py -m teos_air --overwrite-signature -h ' + sign_file + ' ' +
               ' '.join(sources_interface))
 teos_files.append(sign_file)
 
@@ -82,7 +82,7 @@ packages = [package_name + '.' + name for name in find_packages(exclude=['test']
 packages.append(package_name)
 
 setup(name=package_name,
-      version="1.0.2",
+      version="1.0.3",
       packages=find_packages(exclude=['test']),
       # metadata for upload to PyPI
       author=("F. Laliberte, R. Feistel, D. G. Wright, D. R. Jackett, K. Miyagawa, "
