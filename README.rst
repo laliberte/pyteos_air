@@ -38,6 +38,8 @@ NOTE:
 VERSION HISTORY
 ^^^^^^^^^^^^^^^
 
+1.0.2 : Must compute f2py in setup.py.
+
 1.0.1 : Package comes with pre-computed f2py files for easier portability.
 
 1.0 : Important bug fix on PYPI
