@@ -41,12 +41,13 @@ def test_g_ref_pottempequiapprox():
 
 def test_g_ref_pottempequi_exact():
     # Below freezing:
-    assert liq_ice_air.g_ref.pottempequi(0.98, 270.0, 5e4, 1e5) == 383.8781880195045
+    np.testing.assert_almost_equal(liq_ice_air.g_ref.pottempequi(0.98, 270.0, 5e4, 1e5), 383.8781880195045)
     # Above freezing:
-    assert liq_ice_air.g_ref.pottempequi(0.98, 300.0, 5e4, 1e5) == 424.2285658682927
+    np.testing.assert_almost_equal(liq_ice_air.g_ref.pottempequi(0.98, 300.0, 5e4, 1e5), 424.2285658682927)
     # Low pressure, must be dry:
-    assert liq_ice_air.g_ref.pottempequi(1.0, 300.0, 5e3, 1e5) == 692.815889987961
+    np.testing.assert_almost_equal(liq_ice_air.g_ref.pottempequi(1.0, 300.0, 5e3, 1e5), 692.815889987961)
     # Above freezing at surface:
-    assert liq_ice_air.g_ref.pottempequi(0.98, 300.0, 1e5, 1e5) == 351.77280280400373
+    np.testing.assert_almost_equal(liq_ice_air.g_ref.pottempequi(0.98, 300.0, 1e5, 1e5), 351.77280280400373)
     # Above freezing at surface mostly dry:
-    assert liq_ice_air.g_ref.pottempequi(0.999, 300.0, 1e5, 1e5) == 302.37955703334933
+    np.testing.assert_almost_equal(liq_ice_air.g_ref.pottempequi(0.999, 300.0, 1e5, 1e5), 302.37955703334933)
+    np.testing.assert_almost_equal(liq_ice_air.g_ref.pottempequi(0.99, 300.0, 8.5e4, 1e5), 341.46261045371557)
