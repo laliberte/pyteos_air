@@ -177,7 +177,7 @@ function liq_ice_air_pottempequiapprox_si(a_si, t_si, p_si, pr_si)
 !THIS FUNCTION COMPUTES THE APPROXIMATE EQUIVALENT POTENTIAL TEMPERATURE OF AIR AT FIXED PRESSURE AND FIXED DRY AIR MASS FRACTION.
 !THIS FUNCTION GIVES AN EXPRESSION THAT CORRESPONDS TO EQUATION (4.5.10) IN EMMANUEL (1994) WHEN
 !T_SI IS ABOVE FREEZING AND POTTEMP(A_SI,T_SI,P_SI,PR_SI) IS ABOVE FREEZING.
-!AT PR_SI=1E5 PA, IT IS EXACTLY EQUAL TO 273.15 * exp(liq_ice_air_g_entropy_si/1003.0) AND WOULD CORRESPOND TO THE SURFACE VALUE.
+!IT IS EXACTLY EQUAL TO 273.15 * EXP((liq_ice_air_g_entropy_si(A_SI, T_SI, P_SI) - liq_ice_air_g_entropy(1d0, 273.15, PR_SI))/1003.0).
 
 !OUTPUT:
 !THETA_E(A,T,P,PR) APPROX EQUIVALENT POTENTIAL TEMPERATURE OF ICE AIR OR LIQUID AIR IN K
@@ -188,7 +188,7 @@ function liq_ice_air_pottempequiapprox_si(a_si, t_si, p_si, pr_si)
 !P_SI      ABSOLUTE IN-SITU PRESSURE IN PA
 !PR_SI     REFERENCE PRESSURE IN PA
 
-real*8 liq_ice_air_pottempequiapprox_si, a_si, t_si, p_si, pr_si
+real*8 liq_ice_air_pottempequiapprox_si, a_si, t_si, p_si, pr_si, a_valid_si, ref_eta_si
 
 liq_ice_air_pottempequiapprox_si = errorreturn
 
@@ -198,9 +198,14 @@ if(p_si < 0d0) return
 if(pr_si < 0d0) return
 
 !COMPUTE APPROXIMATE POTTEMPEQUI AT PR_SI = 1E5:
-liq_ice_air_pottempequiapprox_si = 273.15d0*EXP(liq_ice_air_g_entropy_si(a_si, t_si, p_si)/1003.0d0) 
-!USE DRY POTTEMP TO MOVE AROUND:
-liq_ice_air_pottempequiapprox_si = liq_ice_air_pottemp_si(1d0, liq_ice_air_pottempequiapprox_si, 1d5, pr_si)
+a_valid_si = a_si
+if(t_si<mix_air_tmin .or. t_si>mix_air_tmax) then
+    a_valid_si = 1d0
+endif
+
+ref_eta_si = liq_ice_air_g_entropy_si(1d0, celsius_temperature_si, pr_si)
+
+liq_ice_air_pottempequiapprox_si = celsius_temperature_si*EXP((liq_ice_air_g_entropy_si(a_valid_si, t_si, p_si)-ref_eta_si)/1003d0) 
 end function
 
 
@@ -216,8 +221,9 @@ function liq_ice_air_pottempequi_si(a_si, t_si, p_si, pr_si)
 !A_SI      ABSOLUTE DRY-AIR MASS FRACTION IN KG/KG
 !T_SI      ABSOLUTE IN-SITU TEMPERATURE IN K
 !P_SI      ABSOLUTE IN-SITU PRESSURE IN PA
+!PR_SI     REFERENCE PRESSURE IN PA
 
-real*8 liq_ice_air_pottempequi_si, a_si, t_si, p_si, pr_si
+real*8 liq_ice_air_pottempequi_si, a_si, t_si, p_si, pr_si, a_valid_si
 
 liq_ice_air_pottempequi_si = errorreturn
 
@@ -226,10 +232,14 @@ if(t_si < 0d0) return
 if(p_si < 0d0) return
 if(pr_si < 0d0) return
 
+a_valid_si = a_si
+if(t_si<mix_air_tmin .or. t_si>mix_air_tmax) then
+    a_valid_si = 1d0
+endif
 
-liq_ice_air_pottempequi_si = liq_ice_air_pottemp_si(a_si,t_si,p_si,pr_si)
+liq_ice_air_pottempequi_si = liq_ice_air_pottemp_si(a_valid_si,t_si,p_si,pr_si)
 
-liq_ice_air_pottempequi_si = liq_ice_air_g_temperatureequi_si(a_si, &
+liq_ice_air_pottempequi_si = liq_ice_air_g_temperatureequi_si(a_valid_si, &
                                                     liq_ice_air_pottempequi_si, pr_si)
 
 end function
@@ -237,7 +247,7 @@ end function
 function liq_ice_air_g_temperatureequi_si(a_si, t_si, p_si)
 !THIS FUNCTION COMPUTES THE EQUIVALENT TEMPERATURE OF AIR AT FIXED PRESSURE AND FIXED DRY AIR MASS FRACTION.
 !THIS FUNCTION GIVES AN EXPRESSION THAT CORRESPONDS TO EQUATION (4.5.10) IN EMMANUEL (1994) WHEN
-!T_SI IS ABOVE FREEZING AND POTTEMP(A_SI,T_SI,P_SI,PR_SI) IS ABOVE FREEZING.
+!T_SI IS ABOVE FREEZING AND POTTEMP(A_SI,T_SI,P_SI) IS ABOVE FREEZING.
 
 !OUTPUT:
 !TEQ(A,T,P,PR) ABSOLUTE EQUIVALENT TEMPERATURE OF ICE AIR OR LIQUID AIR IN K
@@ -246,9 +256,8 @@ function liq_ice_air_g_temperatureequi_si(a_si, t_si, p_si)
 !A_SI      ABSOLUTE DRY-AIR MASS FRACTION IN KG/KG
 !T_SI      ABSOLUTE IN-SITU TEMPERATURE IN K
 !P_SI      ABSOLUTE IN-SITU PRESSURE IN PA
-!PR_SI     REFERENCE PRESSURE IN PA
 
-real*8 liq_ice_air_g_temperatureequi_si, a_si, t_si, p_si
+real*8 liq_ice_air_g_temperatureequi_si, a_si, t_si, p_si, a_valid_si
 real*8 t1, t2, eps
 integer maxit
 
@@ -263,10 +272,16 @@ if(a_si==1d0) then
     return
 endif
 
+a_valid_si = a_si
+if(t_si<mix_air_tmin .or. t_si>mix_air_tmax) then
+    a_valid_si = 1d0
+endif
+
+
 call init_it_ctrl_tempequi
 
-t1=min_liq_ice_air_temperatureequi_si(a_si,t_si,p_si)
-t2=max_liq_ice_air_temperatureequi_si(a_si,t_si,p_si)
+t1=min_liq_ice_air_temperatureequi_si(a_valid_si,t_si,p_si)
+t2=max_liq_ice_air_temperatureequi_si(a_valid_si,t_si,p_si)
 
   if(ctrl_loop_maximum == 0) then
     maxit = 100
@@ -283,7 +298,7 @@ eps = ctrl_eps_exit_tempequi
 if(eps <= 0d0) return
 
 !RUN THE ITERATION
-liq_ice_air_g_temperatureequi_si = temperatureequiiteration_brent(a_si, t_si, p_si, t1, t2, maxit, eps)
+liq_ice_air_g_temperatureequi_si = temperatureequiiteration_brent(a_valid_si, t_si, p_si, t1, t2, maxit, eps)
 
 end function
 
@@ -503,8 +518,8 @@ if(wa_si < 0d0 .or. wa_si > 1d0 .or. &
   eps == 0d0 .or. &
   maxit <= 0) return
 
-!mixing_eta = -gas_constant_air_si*wa_si*log(p_si/(sealevel_pressure_si-tp_pressure_iapws95_si))
-mixing_eta = 0d0
+!Include the entropy of mixing:
+mixing_eta = -gas_constant_air_si*wa_si*log(p_si/(sealevel_pressure_si-tp_pressure_iapws95_si))
 
 a = t1
 
@@ -525,7 +540,6 @@ else
 endif
 fb = -fb - t_si
 
-!write(*,*) a,fa,b,fb
 if(fa * fb > 0d0) return
 
 

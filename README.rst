@@ -38,6 +38,8 @@ NOTE:
 VERSION HISTORY
 ^^^^^^^^^^^^^^^
 
+1.0.4 : New equivalent potential temperature and its approximate version.
+
 1.0.3 : Must compute f2py in ``setup.py`` but now using a more portable method.
 
 1.0.1 : Package comes with pre-computed f2py files for easier portability.
